@@ -1,0 +1,13 @@
+setup.py
+src/RiotAPI_Processing_Functions.egg-info/PKG-INFO
+src/RiotAPI_Processing_Functions.egg-info/SOURCES.txt
+src/RiotAPI_Processing_Functions.egg-info/dependency_links.txt
+src/RiotAPI_Processing_Functions.egg-info/top_level.txt
+src/analysis/__init__.py
+src/data_collection/__init__.py
+src/data_collection/data_gathering.py
+src/data_collection/riot_api.py
+src/processing/__init__.py
+src/riot_key_folder/__init__.py
+src/riot_key_folder/riot_api_key.py
+src/visualization/__init__.py
