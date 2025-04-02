@@ -1,4 +1,4 @@
-# League of Legends Statistical Analysis Project
+# League of Legends Statistical Analysis Project (IN PROGRESS)
 
 ## Project Overview
 This project analyzes *League of Legends* gameplay data to identify patterns and strategies that differentiate high-Elo players from casual players
