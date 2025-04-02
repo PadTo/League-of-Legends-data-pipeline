@@ -591,6 +591,7 @@ class Pipeline:
         except sqlite3.Error as e:
             logging.error(f"Database error:{e}")
 
+    # TODO: FIGURE OUT WHAT TO STORE AND HOW TO PROCESS
     def _collect_match_timeline_by_matchId(self):
         pass
 
@@ -607,6 +608,6 @@ class Pipeline:
 
 
 ppl = Pipeline('D:\LoL Analysis Project\data',
-               'D:\LoL Analysis Project\log_config\config.json')
+               'D:\LoL Analysis Project\log_config\log_config.json')
 
 ppl.start_pipeline()
