@@ -23,7 +23,6 @@ class Pipeline:
 
         self.sleep_duration_after_API_call = rate_time_limit[1] / \
             rate_time_limit[0]
-        self.logger = logging.getLogger("pipeline_logger")
         config_file_path = Path(logging_config_path)
         self.logger = self._logging_setup(config_file_path)
 
