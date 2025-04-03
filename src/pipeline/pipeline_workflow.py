@@ -23,6 +23,7 @@ class Pipeline:
 
         self.sleep_duration_after_API_call = rate_time_limit[1] / \
             rate_time_limit[0]
+
         config_file_path = Path(logging_config_path)
         self.logger = self._logging_setup(config_file_path)
 
@@ -43,7 +44,7 @@ class Pipeline:
         self._create_match_data_teams_table()
         self._create_match_data_participants_table()
 
-        # self._create_match_timeline_table()
+        self._create_match_timeline_table()
 
     def _create_database(self):
 
@@ -96,6 +97,8 @@ class Pipeline:
         self._create_db_table(
             self.database_location_absolute_path, create_table_query, commit_message)
 
+    # TODO: ADD a column if the game ended abruptly or not
+
     def _create_match_data_teams_table(self):
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Match_Data_Teams_Table(
@@ -117,6 +120,8 @@ class Pipeline:
         commit_message = "Table 'Match_Data_Teams_Table' created successfully!"
         self._create_db_table(
             self.database_location_absolute_path, create_table_query, commit_message)
+
+    # TODO: ADD a column if the game ended abruptly or not
 
     def _create_match_data_participants_table(self):
         create_table_query = '''
@@ -174,9 +179,15 @@ class Pipeline:
     def _create_match_timeline_table(self):
         create_table_query = '''
             CREATE IF NOT EXISTS Match_Timeline(
-              match_id INT(32),
-              puuid TEXT,
-              FOREIGN KEY(puuid) REFERENCES Summoners(puuid) ON SET NULL)'''
+              matchId TEXT,
+              puuId TEXT,
+              inGameId INT,
+              teamPosition TEXT,
+              x INT,
+              y INT,
+              timestamp INT,
+              event JSONB,
+              FOREIGN KEY(matchId) REFERENCES Match_Id_Table(matchId) ON SET NULL)'''
 
         commit_mesage = "Table 'Match_IDs' created successfully!"
 
@@ -592,13 +603,42 @@ class Pipeline:
 
     # TODO: FIGURE OUT WHAT TO STORE AND HOW TO PROCESS
     def _collect_match_timeline_by_matchId(self):
-        pass
+        with self._get_connection(self.database_location_absolute_path) as connection:
+            try:
+
+                cursor = connection.cursor()
+                fetch_query = '''
+                    SELECT matchId FROM Match_ID_Table'''
+                match_ids = cursor.execute(fetch_query).fetchall()
+                logging.info(
+                    "Successfully fetched matchId data from the database")
+
+            except sqlite3.Error as e:
+                logging.error(f"Database error: {e}")
+
+        for match_id in match_ids:
+            id = match_id[0]
+
+            data = self.CallsAPI.get_match_timestamps_from_matcId(id)
+
+            # print(data['info']['frames'][0])
+            i = 0
+            print(len(data['info']['frames']))
+            for frame in data['info']['frames']:
+                print(frame)
+
+                if i == 2:
+                    break
+                i += 1
+            # logging.info(json.dumps(data, indent=4))
+
+            break
 
     def _collect_data(self):
         # self._collect_summoner_entries_by_tier()
         # self._collect_match_id_by_puuid()
-        self._collect_match_data_by_matchId()
-        # self._collect_match_timeline_by_matchId()
+        # self._collect_match_data_by_matchId()
+        self._collect_match_timeline_by_matchId()
 
     def start_pipeline(self):
         # self._create_database()

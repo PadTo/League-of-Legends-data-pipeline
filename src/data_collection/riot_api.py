@@ -255,7 +255,6 @@ class RiotApi:
             self.status_response_exception(status_code)
 
             match_timeline = response.json()
-            print(match_timeline)
             return match_timeline
         except StatusCodeError as e:
             print(f"Error fetching match timeline: {e}")
