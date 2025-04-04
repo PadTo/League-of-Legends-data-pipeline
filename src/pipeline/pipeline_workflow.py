@@ -12,7 +12,7 @@ import time
 
 
 class Pipeline:
-    def __init__(self, db_save_location: str, logging_config_path: str, rate_time_limit=(100, 120)):
+    def __init__(self, db_save_location: str, logging_config_path: str, rate_time_limit=(100, 120), eventTypesToConsider=None):
         self.API_key = get_riot_api_key()
         self.db_save_location_path = Path(db_save_location)
         self.CallsAPI = RiotApi(self.API_key)
@@ -21,11 +21,17 @@ class Pipeline:
         self.database_location_absolute_path = self.db_save_location_path / \
             ('riot_data_database' + '.db')
 
-        self.sleep_duration_after_API_call = rate_time_limit[1] / \
-            rate_time_limit[0]
-
         config_file_path = Path(logging_config_path)
         self.logger = self._logging_setup(config_file_path)
+
+        if eventTypesToConsider == None:
+            self.eventTypesToConsider = [
+                "ELITE_MONSTER_KILL", "CHAMPION_KILL"]
+        else:
+            self.eventTypesToConsider = eventTypesToConsider
+
+        self.sleep_duration_after_API_call = rate_time_limit[1] / \
+            rate_time_limit[0]
 
     def _logging_setup(self, config_path):
         logger = logging.getLogger("pipeline_logger")
@@ -97,7 +103,7 @@ class Pipeline:
         self._create_db_table(
             self.database_location_absolute_path, create_table_query, commit_message)
 
-    # TODO: ADD a column if the game ended abruptly or not
+    # TODO: TEST IF THE ADDED COLUMN WORKS
 
     def _create_match_data_teams_table(self):
         create_table_query = '''
@@ -114,6 +120,7 @@ class Pipeline:
                 teamId INTEGER,
                 teamWin BOOLEAN,
                 gameTier TEXT,
+                endOfGameResult TEXT,
                 FOREIGN KEY(matchId) REFERENCES Match_ID_Table(matchId) ON DELETE SET NULL
             );
         '''
@@ -121,7 +128,7 @@ class Pipeline:
         self._create_db_table(
             self.database_location_absolute_path, create_table_query, commit_message)
 
-    # TODO: ADD a column if the game ended abruptly or not
+    # TODO: TEST IF THE ADDED COLUMN WORKS
 
     def _create_match_data_participants_table(self):
         create_table_query = '''
@@ -167,6 +174,7 @@ class Pipeline:
 
                 hadOpenNexus BOOLEAN,
                 win BOOLEAN,
+                endOfGameResult TEXT,
 
                 FOREIGN KEY (matchId) REFERENCES Match_ID_Table(matchId) ON DELETE CASCADE
             );
@@ -177,17 +185,22 @@ class Pipeline:
             self.database_location_absolute_path, create_table_query, commit_message)
 
     def _create_match_timeline_table(self):
+
+        # Type can be MOVEMENT, DRAGON, HERALD, etc.
+
         create_table_query = '''
-            CREATE IF NOT EXISTS Match_Timeline(
+            CREATE TABLE IF NOT EXISTS Match_Timeline(
               matchId TEXT,
               puuId TEXT,
+              teamId TEXT,
               inGameId INT,
               teamPosition TEXT,
               x INT,
               y INT,
               timestamp INT,
-              event JSONB,
-              FOREIGN KEY(matchId) REFERENCES Match_Id_Table(matchId) ON SET NULL)'''
+              event TEXT,
+              type TEXT,
+              FOREIGN KEY(matchId) REFERENCES Match_Id_Table(matchId) ON DELETE SET NULL)'''
 
         commit_mesage = "Table 'Match_IDs' created successfully!"
 
@@ -452,16 +465,18 @@ class Pipeline:
                 teamId2 = team2["teamId"]
                 teamWin2 = team2["win"]
 
+                endOfGameResult = match_data["info"]["endOfGameResult"]
+
                 team1_data = (
                     match_id[0], killedAtakhan1, baronKills1, championKills1, dragonKills1,
                     dragonSoul1, hordeKills1, riftHeraldKills1, towerKills1,
-                    teamId1, teamWin1, game_tier
+                    teamId1, teamWin1, game_tier, endOfGameResult
                 )
 
                 team2_data = (
                     match_id[0], killedAtakhan2, baronKills2, championKills2, dragonKills2,
                     dragonSoul2, hordeKills2, riftHeraldKills2, towerKills2,
-                    teamId2, teamWin2, game_tier
+                    teamId2, teamWin2, game_tier, endOfGameResult
                 )
                 data_teams.append(team1_data)
                 data_teams.append(team2_data)
@@ -517,7 +532,8 @@ class Pipeline:
                         participant["teamPosition"],
 
                         participant["challenges"]["hadOpenNexus"],
-                        participant["win"]
+                        participant["win"],
+                        endOfGameResult
                     ))
                 if i == 0:
                     logging.info(
@@ -542,7 +558,8 @@ class Pipeline:
                       towerKills,
                       teamId,
                       teamWin,
-                      gameTier
+                      gameTier,
+                      endOfGameResult
                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                   '''
 
@@ -590,7 +607,8 @@ class Pipeline:
                       teamPosition,
 
                       hadOpenNexus,
-                      win
+                      win,
+                      endOfGameResult
                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?);
                   '''
 
@@ -624,12 +642,29 @@ class Pipeline:
             # print(data['info']['frames'][0])
             i = 0
             print(len(data['info']['frames']))
+
+            # TODO: MAKE A PUUID AND InGAMEID DICTIONARY
+            # TODO: GET TEAM POSITION
+
             for frame in data['info']['frames']:
-                print(frame)
+
+                for event in frame['events']:
+                    if event['type'] in self.eventTypesToConsider:
+
+                        if event['type'] == "ELITE_MONSTER_KILL":
+                            event_type = event['monsterType']
+
+                        elif event['type'] == "CHAMPION_KILL":
+                            event_type = "KILL"
+
+                        event_name = event['type']
 
                 if i == 2:
                     break
                 i += 1
+
+                for participantId in frame['participantFrames'].keys():
+                    pass
             # logging.info(json.dumps(data, indent=4))
 
             break
@@ -639,10 +674,11 @@ class Pipeline:
         # self._collect_match_id_by_puuid()
         # self._collect_match_data_by_matchId()
         self._collect_match_timeline_by_matchId()
+        pass
 
     def start_pipeline(self):
         # self._create_database()
-        self._create_all_tables()
+        # self._create_all_tables()
         self._collect_data()
 
 
