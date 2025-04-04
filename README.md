@@ -1,5 +1,9 @@
 # League of Legends Statistical Analysis Project (IN PROGRESS)
 
+![League of Legends Logo](https://via.placeholder.com/150x50?text=LoL+Logo) *Analyzing high-Elo vs. low-Elo gameplay patterns*
+
+---
+
 ## Project Overview
 This project analyzes *League of Legends* gameplay data to identify patterns and strategies that differentiate high-Elo players from casual players
 
