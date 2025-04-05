@@ -133,7 +133,7 @@ class Pipeline:
     def _create_match_data_participants_table(self):
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Match_Data_Participants_Table (
-                puuId TEXT PRIMARY KEY,
+                puuId TEXT,
                 matchId TEXT,
                 teamId INTEGER,
                 gameTier TEXT,
@@ -186,8 +186,10 @@ class Pipeline:
 
     def _create_match_timeline_table(self):
 
-        # Type can be MOVEMENT, DRAGON, HERALD, etc.
+        # Events can be TURRET_PLATE_DESTROYED,BUILDING_KILL
+        # Type can be MOVEMENT, DRAGON, HERALD, HORDE, ATAKHAN etc.
 
+        # If the event is building kill the team_id represents the team that lost it and puuid (player who killed it, 0 indicates that no player contributed to it)
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Match_Timeline(
               matchId TEXT,
@@ -619,6 +621,14 @@ class Pipeline:
         except sqlite3.Error as e:
             logging.error(f"Database error:{e}")
 
+    def get_teamId_teamPos(self, puuid, match_id):
+        with self._get_connection(self.database_location_absolute_path) as connection:
+            cursor = connection.cursor()
+            fetch_query = f'''
+                  SELECT teamId, teamPosition FROM Match_Data_Participants_Table
+                  WHERE puuid='{puuid}' AND matchId='{match_id}'''
+            cursor.execute(fetch_query)
+
     # TODO: FIGURE OUT WHAT TO STORE AND HOW TO PROCESS
     def _collect_match_timeline_by_matchId(self):
         with self._get_connection(self.database_location_absolute_path) as connection:
@@ -646,6 +656,12 @@ class Pipeline:
             # TODO: MAKE A PUUID AND InGAMEID DICTIONARY
             # TODO: GET TEAM POSITION
 
+            participant_ids = dict()
+            for participant in data['participants']:
+                in_game_id = participant['participantId']
+                puuid = participant['puuid']
+                participant_ids[in_game_id] = puuid
+
             for frame in data['info']['frames']:
 
                 for event in frame['events']:
@@ -656,6 +672,9 @@ class Pipeline:
 
                         elif event['type'] == "CHAMPION_KILL":
                             event_type = "KILL"
+
+                        elif event['type'] == "BUILDING_KILL":
+                            event_type = event_type['buildingType']
 
                         event_name = event['type']
 
