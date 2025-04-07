@@ -26,7 +26,7 @@ class Pipeline:
 
         if eventTypesToConsider == None:
             self.eventTypesToConsider = [
-                "ELITE_MONSTER_KILL", "CHAMPION_KILL"]
+                "ELITE_MONSTER_KILL", "CHAMPION_KILL", "BUILDING_KILL"]
         else:
             self.eventTypesToConsider = eventTypesToConsider
 
@@ -621,15 +621,20 @@ class Pipeline:
         except sqlite3.Error as e:
             logging.error(f"Database error:{e}")
 
-    def get_teamId_teamPos(self, puuid, match_id):
-        with self._get_connection(self.database_location_absolute_path) as connection:
-            cursor = connection.cursor()
-            fetch_query = f'''
-                  SELECT teamId, teamPosition FROM Match_Data_Participants_Table
-                  WHERE puuid='{puuid}' AND matchId='{match_id}'''
-            cursor.execute(fetch_query).fetchall()
+    def _get_teamId_teamPos(self, puuid, match_id):
 
-    # TODO: FIGURE OUT WHAT TO STORE AND HOW TO PROCESS
+        if puuid == "Minion":
+
+            return (None, "")
+        else:
+            with self._get_connection(self.database_location_absolute_path) as connection:
+                cursor = connection.cursor()
+                fetch_query = f'''
+                    SELECT teamId, teamPosition FROM Match_Data_Participants_Table
+                    WHERE puuid='{puuid}' AND matchId='{match_id}\''''
+                query_data = cursor.execute(fetch_query).fetchall()
+
+            return query_data[0]
 
     def _collect_match_timeline_by_matchId(self):
         with self._get_connection(self.database_location_absolute_path) as connection:
@@ -646,79 +651,45 @@ class Pipeline:
                 logging.error(f"Database error: {e}")
 
         data_events = []
-        for match_id in match_ids:
+        for iter_, match_id in enumerate(match_ids):
             id = match_id[0]
 
             data = self.CallsAPI.get_match_timestamps_from_matcId(id)
 
-            # print(data['info']['frames'][0])
-            i = 0
-            print(len(data['info']['frames']))
-
-            # TODO: GET TEAM POSITION
-
             participant_ids = dict()
-            participant_ids[0] = None
-            for participant in data['participants']:
+            participant_ids[0] = "Minion"
+            for participant in data['info']['participants']:
                 in_game_id = participant['participantId']
                 puuid = participant['puuid']
                 participant_ids[in_game_id] = puuid
 
-            print(participant_ids)
+            if iter_ == 0:
+                logging.info(f"CHECKING: Participant id's: {participant_ids}")
 
             for frame in data['info']['frames']:
 
                 for event in frame['events']:
+
                     if event['type'] in self.eventTypesToConsider:
 
-                        # if event['type'] == "ELITE_MONSTER_KILL":
-
-                        #     team_id_e = event['killerTeamId']
-                        #     in_game_id_e = event['killerId']
-                        #     team_position_e = None  # TODO: WRITE A FUNCTION TO GET THE LANE POSITION OF THE PLAYER
-                        #     puuid_e = participant_ids[in_game_id_e]
-                        #     position_x_e = event['position']['x']
-                        #     position_y_e = event['position']['y']
-                        #     timestamp_e = event['timestamp']
-                        #     event_type_e = event['monsterType']
-
-                        # # TODO: REFACTOR
-                        # elif event['type'] == "CHAMPION_KILL":
-                        #     # TODO: FIGURE OUT HOW TO GET TeamID
-                        #     team_id_e = event['killerTeamId']
-                        #     in_game_id_e = event['killerId']
-                        #     puuid_e = participant_ids[in_game_id_e]
-                        #     position_x_e = event['position']['x']
-                        #     position_y_e = event['position']['y']
-                        #     timestamp_e = event['timestamp']
-                        #     event_type_e = "KILL"
-
-                        # elif event['type'] == "BUILDING_KILL":
-                        #     # TEAM THAT LOST THE TURRET
-                        #     team_id_e = event['teamId']
-                        #     in_game_id_e = event['killerId']
-                        #     puuid_e = participant_ids[in_game_id_e]
-                        #     position_x_e = event['position']['x']
-                        #     position_y_e = event['position']['y']
-                        #     timestamp_e = event['timestamp']
-                        #     event_type_e = event['buildingType']
-
                         if event['type'] in ["ELITE_MONSTER_KILL", "CHAMPION_KILL", "BUILDING_KILL"]:
+                            print(event['type'])
                             in_game_id_e = event.get('killerId')
                             puuid_e = participant_ids.get(in_game_id_e)
                             position = event.get('position', {})
                             position_x_e, position_y_e = position.get(
                                 'x'), position.get('y')
                             timestamp_e = event.get('timestamp')
+                            teamId_teamPos_e = self._get_teamId_teamPos(
+                                puuid_e, id)
+                            team_position_e = teamId_teamPos_e[1]
 
                             if event['type'] == "ELITE_MONSTER_KILL":
                                 team_id_e = event.get('killerTeamId')
                                 event_type_e = event.get('monsterType')
-                                team_position_e = None  # TODO: GET LANE POSITION
 
                             elif event['type'] == "CHAMPION_KILL":
-                                # TODO: double-check this field
-                                team_id_e = event.get('killerTeamId')
+                                team_id_e = teamId_teamPos_e[0]
                                 event_type_e = "KILL"
 
                             elif event['type'] == "BUILDING_KILL":
@@ -732,28 +703,30 @@ class Pipeline:
                                        position_x_e, position_y_e, timestamp_e, event_name_e, event_type_e)
                         data_events.append(frame_event)
 
-                if i == 2:
-                    break
-                i += 1
+                        if iter_ == 0:
+                            logging.info(
+                                f"CHECKING: frame events:\n {frame_event}")
 
                 general_timestamp = frame['timestamp']
                 for participantId, participantFrame in frame['participantFrames'].items():
                     puuid_p = participant_ids[in_game_id]
-                    team_id_p = None
+
                     in_game_id_p = participantId
-                    team_position_p = None
+                    teamId_teamPos_p = self._get_teamId_teamPos(puuid_p, id)
+
+                    team_id_p, team_position_p = teamId_teamPos_p[0], teamId_teamPos_p[1]
+
                     position_x_p = participantFrame['position']['x']
                     position_y_p = participantFrame['position']['y']
                     timestamp_p = general_timestamp
                     event_type_p = "PARTICIPANT_FRAME"
                     event_name_p = "POSITION"
 
-                    pass
+                    participant_event = (id, puuid_p, team_id_p, in_game_id_p, team_position_p,
+                                         position_x_p, position_y_p, timestamp_p, event_name_p, event_type_p)
+                    data_events.append(participant_event)
 
-                break
-            # logging.info(json.dumps(data, indent=4))
-
-            break
+            logging.info(data_events)
 
     def _collect_data(self):
         # self._collect_summoner_entries_by_tier()
