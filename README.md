@@ -65,9 +65,9 @@ To understand the performance patterns that differentiate high-level play from a
 ### 2. Project Phases
 1. **API Configuration**
    - Setting up API connections
-2. **Setting up the Database and Retrieving Data (CURRENT STAGE)**
+2. **Setting up the Database and Retrieving Data**
    - Creating SQL database and importing initial data using API calls
-3. **Data Processing & Cleaning**
+3. **Data Processing & Cleaning (CURRENT STAGE)**
    - Transforming, Normalizing and preparing data for analysis
 4. **Analysis Development**
    - Creating statistical models and running analyses
