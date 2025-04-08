@@ -407,6 +407,7 @@ class Pipeline:
 
         return max(tier_freq_dict, key=tier_freq_dict.get)
 
+    # TODO: EMPLOY RATE LIMITING
     def _collect_match_data_by_matchId(self):
 
         try:
@@ -747,14 +748,14 @@ class Pipeline:
 
     def _collect_data(self):
         # self._collect_summoner_entries_by_tier()
-        self._collect_match_id_by_puuid()
+        # self._collect_match_id_by_puuid()
         self._collect_match_data_by_matchId()
         self._collect_match_timeline_by_matchId()
         pass
 
     def start_pipeline(self):
-        # self._create_database()
-        # self._create_all_tables()
+        self._create_database()
+        self._create_all_tables()
         self._collect_data()
 
 
