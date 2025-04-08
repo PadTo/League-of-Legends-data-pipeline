@@ -103,8 +103,6 @@ class Pipeline:
         self._create_db_table(
             self.database_location_absolute_path, create_table_query, commit_message)
 
-    # TODO: TEST IF THE ADDED COLUMN WORKS
-
     def _create_match_data_teams_table(self):
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Match_Data_Teams_Table(
@@ -127,8 +125,6 @@ class Pipeline:
         commit_message = "Table 'Match_Data_Teams_Table' created successfully!"
         self._create_db_table(
             self.database_location_absolute_path, create_table_query, commit_message)
-
-    # TODO: TEST IF THE ADDED COLUMN WORKS
 
     def _create_match_data_participants_table(self):
         create_table_query = '''
@@ -191,7 +187,7 @@ class Pipeline:
 
         # If the event is building kill the team_id represents the team that lost it and puuid (player who killed it, 0 indicates that no player contributed to it)
         create_table_query = '''
-            CREATE TABLE IF NOT EXISTS Match_Timeline(
+            CREATE TABLE IF NOT EXISTS Match_Timeline_Table(
               matchId TEXT,
               puuId TEXT,
               teamId TEXT,
@@ -395,6 +391,7 @@ class Pipeline:
         except sqlite3.Error as e:
             logging.error(f"Database error: {e}")
 
+    # TODO: EMPLOY RATE LIMITING:
     def _get_majority_tier(self, player_puuids: list):
         tier_freq_dict = {}
         for puuid in player_puuids:
@@ -633,9 +630,9 @@ class Pipeline:
                     SELECT teamId, teamPosition FROM Match_Data_Participants_Table
                     WHERE puuid='{puuid}' AND matchId='{match_id}\''''
                 query_data = cursor.execute(fetch_query).fetchall()
-
             return query_data[0]
 
+    # TODO: ADD FUNCTIONALITY WHERE IF A PUUID DOESN'T EXIST IN THE DATABASE RETURN None, None for temaid and position
     def _collect_match_timeline_by_matchId(self):
         with self._get_connection(self.database_location_absolute_path) as connection:
             try:
@@ -703,10 +700,6 @@ class Pipeline:
                                        position_x_e, position_y_e, timestamp_e, event_name_e, event_type_e)
                         data_events.append(frame_event)
 
-                        if iter_ == 0:
-                            logging.info(
-                                f"CHECKING: frame events:\n {frame_event}")
-
                 general_timestamp = frame['timestamp']
                 for participantId, participantFrame in frame['participantFrames'].items():
                     puuid_p = participant_ids[in_game_id]
@@ -726,12 +719,36 @@ class Pipeline:
                                          position_x_p, position_y_p, timestamp_p, event_name_p, event_type_p)
                     data_events.append(participant_event)
 
-            logging.info(data_events)
+            # RANDOM CHECK
+            if iter_ == 50:
+                logging.info(data_events)
+
+            if iter_ == 0:
+                break
+
+        with self._get_connection(self.database_location_absolute_path) as connection:
+            cursor = connection.cursor()
+            insert_query = '''
+                INSERT INTO Match_Timeline_Table (
+                    matchId,
+                    puuId,
+                    teamId,
+                    inGameId,
+                    teamPosition,
+                    x,
+                    y,
+                    timestamp,
+                    event,
+                    type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                '''
+            cursor.executemany(insert_query, data_events)
+            connection.commit()
 
     def _collect_data(self):
         # self._collect_summoner_entries_by_tier()
-        # self._collect_match_id_by_puuid()
-        # self._collect_match_data_by_matchId()
+        self._collect_match_id_by_puuid()
+        self._collect_match_data_by_matchId()
         self._collect_match_timeline_by_matchId()
         pass
 
