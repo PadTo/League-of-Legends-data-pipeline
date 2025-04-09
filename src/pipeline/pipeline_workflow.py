@@ -633,7 +633,14 @@ class Pipeline:
                     SELECT teamId, teamPosition FROM Match_Data_Participants_Table
                     WHERE puuid='{puuid}' AND matchId='{match_id}\''''
                 query_data = cursor.execute(fetch_query).fetchall()
-            return query_data[0]
+
+                print(len(query_data))
+                if len(query_data) == 0:
+                    logging.warning(
+                        f"No id and position data for player | puuid: {puuid} matchId: {match_id}")
+                    return None
+                else:
+                    return query_data[0]
 
     # TODO: ADD FUNCTIONALITY WHERE IF A PUUID DOESN'T EXIST IN THE DATABASE RETURN None, None for temaid and position
     def _collect_match_timeline_by_matchId(self):
@@ -682,6 +689,12 @@ class Pipeline:
                             timestamp_e = event.get('timestamp')
                             teamId_teamPos_e = self._get_teamId_teamPos(
                                 puuid_e, id)
+
+                            if teamId_teamPos_e == None:
+                                logging.warning(
+                                    f"Excluding this frame data |\n puuid: {puuid_e}, event: {event['type']}, matchId: {id}")
+                                break
+
                             team_position_e = teamId_teamPos_e[1]
 
                             if event['type'] == "ELITE_MONSTER_KILL":
@@ -710,6 +723,10 @@ class Pipeline:
                     in_game_id_p = participantId
                     teamId_teamPos_p = self._get_teamId_teamPos(puuid_p, id)
 
+                    if teamId_teamPos_p == None:
+                        logging.warning(
+                            f"Excluding this frame data |\n puuid: {puuid_p}, event: PARTICIPANT_FRAME, matchId: {id}")
+                        break
                     team_id_p, team_position_p = teamId_teamPos_p[0], teamId_teamPos_p[1]
 
                     position_x_p = participantFrame['position']['x']
@@ -726,7 +743,7 @@ class Pipeline:
             if iter_ == 50:
                 logging.info(data_events)
 
-            if iter_ == 0:
+            if iter_ == 1:
                 break
 
         with self._get_connection(self.database_location_absolute_path) as connection:
