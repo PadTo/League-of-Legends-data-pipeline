@@ -173,6 +173,7 @@ class Pipeline:
                 endOfGameResult TEXT,
 
                 FOREIGN KEY (matchId) REFERENCES Match_ID_Table(matchId) ON DELETE CASCADE
+                PRIMARY KEY (puuId, matchId)
             );
         '''
 
