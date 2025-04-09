@@ -391,10 +391,10 @@ class Pipeline:
         except sqlite3.Error as e:
             logging.error(f"Database error: {e}")
 
-    # TODO: EMPLOY RATE LIMITING:
     def _get_majority_tier(self, player_puuids: list):
         tier_freq_dict = {}
         for puuid in player_puuids:
+            time.sleep(self.sleep_duration_after_API_call)
 
             try:
                 tier = self.CallsAPI.get_summoner_tier_from_puuid(puuid)
@@ -407,7 +407,6 @@ class Pipeline:
 
         return max(tier_freq_dict, key=tier_freq_dict.get)
 
-    # TODO: EMPLOY RATE LIMITING
     def _collect_match_data_by_matchId(self):
 
         try:
@@ -539,6 +538,9 @@ class Pipeline:
                     logging.info(
                         f"Teams Data:\n Team1: {team1_data} \n Team2: {team2_data} \n\n Participant Data:\n {json.dumps(data_participants[0],indent=4)}")
 
+                if i == 1:
+                    break
+
         except Exception as e:
             logging.error(f"{e}")
 
@@ -560,7 +562,7 @@ class Pipeline:
                       teamWin,
                       gameTier,
                       endOfGameResult
-                  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                   '''
 
                 cursor.executemany(insert_query, data_teams)
