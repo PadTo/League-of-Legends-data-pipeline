@@ -107,7 +107,7 @@ class Pipeline:
     def _create_match_data_teams_table(self):
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Match_Data_Teams_Table(
-                matchId TEXT PRIMARY KEY,
+                matchId TEXT,
                 killedAtakhan INTEGER,
                 baronKills INTEGER,
                 championKills INTEGER,
@@ -120,7 +120,9 @@ class Pipeline:
                 teamWin BOOLEAN,
                 gameTier TEXT,
                 endOfGameResult TEXT,
-                FOREIGN KEY(matchId) REFERENCES Match_ID_Table(matchId) ON DELETE SET NULL
+
+                FOREIGN KEY(matchId) REFERENCES Match_ID_Table(matchId) ON DELETE SET NULL,
+                PRIMARY KEY (matchId, teamId)
             );
         '''
         commit_message = "Table 'Match_Data_Teams_Table' created successfully!"
@@ -200,7 +202,8 @@ class Pipeline:
               timestamp INT,
               event TEXT,
               type TEXT,
-              FOREIGN KEY(matchId) REFERENCES Match_Id_Table(matchId) ON DELETE SET NULL)'''
+              FOREIGN KEY(matchId) REFERENCES Match_Id_Table(matchId) ON DELETE SET NULL),
+              PRIMARY KEY(matchId, puuId, timestamp)'''
 
         commit_mesage = "Table 'Match_IDs' created successfully!"
 
