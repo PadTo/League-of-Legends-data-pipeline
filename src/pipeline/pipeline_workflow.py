@@ -637,7 +637,6 @@ class Pipeline:
                     WHERE puuid='{puuid}' AND matchId='{match_id}\''''
                 query_data = cursor.execute(fetch_query).fetchall()
 
-                print(len(query_data))
                 if len(query_data) == 0:
                     logging.warning(
                         f"No id and position data for player | puuid: {puuid} matchId: {match_id}")
@@ -648,16 +647,17 @@ class Pipeline:
     # TODO: ADD FUNCTIONALITY WHERE IF A PUUID DOESN'T EXIST IN THE DATABASE RETURN None, None for temaid and position
     # TODO: ADD COMPOSITE PRIMARY KEYS
     def _collect_match_timeline_by_matchId(self):
+
         with self._get_connection(self.database_location_absolute_path) as connection:
             try:
 
                 cursor = connection.cursor()
                 fetch_query = '''
-                    SELECT matchId FROM Match_ID_Table'''
+                    SELECT DISTINCT matchId FROM Match_Data_Participants_Table '''
                 match_ids = cursor.execute(fetch_query).fetchall()
                 logging.info(
-                    "Successfully fetched matchId data from the database")
-
+                    "Successfully fetched matchId data from the database participants table ")
+                print(match_ids)
             except sqlite3.Error as e:
                 logging.error(f"Database error: {e}")
 
@@ -684,7 +684,6 @@ class Pipeline:
                     if event['type'] in self.eventTypesToConsider:
 
                         if event['type'] in ["ELITE_MONSTER_KILL", "CHAMPION_KILL", "BUILDING_KILL"]:
-                            print(event['type'])
                             in_game_id_e = event.get('killerId')
                             puuid_e = participant_ids.get(in_game_id_e)
                             position = event.get('position', {})
@@ -772,7 +771,7 @@ class Pipeline:
     def _collect_data(self):
         # self._collect_summoner_entries_by_tier()
         # self._collect_match_id_by_puuid()
-        self._collect_match_data_by_matchId()
+        # self._collect_match_data_by_matchId()
         self._collect_match_timeline_by_matchId()
         pass
 
