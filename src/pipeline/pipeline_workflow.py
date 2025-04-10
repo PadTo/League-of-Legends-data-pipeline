@@ -644,8 +644,7 @@ class Pipeline:
                 else:
                     return query_data[0]
 
-    # TODO: ADD FUNCTIONALITY WHERE IF A PUUID DOESN'T EXIST IN THE DATABASE RETURN None, None for temaid and position
-    # TODO: ADD COMPOSITE PRIMARY KEYS
+    # TODO: FIX CONSTRAINT ISSUES AND FIX EVENT FRAME TO BE CORRECTLY ADDED (THEY ARE NOT FOR NOW)
     def _collect_match_timeline_by_matchId(self):
 
         with self._get_connection(self.database_location_absolute_path) as connection:
@@ -751,7 +750,7 @@ class Pipeline:
                                          position_x_p, position_y_p, timestamp_p, event_name_p, event_type_p)
                     data_events.append(participant_event)
 
-            # logging.info(json.dumps(data_events, indent=4))
+            logging.info(json.dumps(data_events, indent=4))
             print("Hello")
             if iter_ == 50:
                 logging.info(data_events)
