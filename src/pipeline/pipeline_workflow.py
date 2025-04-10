@@ -103,7 +103,6 @@ class Pipeline:
         self._create_db_table(
             self.database_location_absolute_path, create_table_query, commit_message)
 
-    # TODO: ADD COMPOSITE PRIMARY KEYS
     def _create_match_data_teams_table(self):
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Match_Data_Teams_Table(
@@ -492,7 +491,6 @@ class Pipeline:
                 else:
                     game_duration = match_data["info"]["gameDuration"] * 0.1 / 60
 
-                data_participants = list()
                 for participant in participants:
                     gold_per_minute = participant["goldEarned"] / game_duration
                     data_participants.append((
