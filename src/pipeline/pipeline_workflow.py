@@ -175,8 +175,8 @@ class Pipeline:
                 win BOOLEAN,
                 endOfGameResult TEXT,
 
+                PRIMARY KEY (puuId, matchId),
                 FOREIGN KEY (matchId) REFERENCES Match_ID_Table(matchId) ON DELETE CASCADE
-                PRIMARY KEY (puuId, matchId)
             );
         '''
 
@@ -202,9 +202,9 @@ class Pipeline:
               timestamp INT,
               event TEXT,
               type TEXT,
-              FOREIGN KEY(matchId) REFERENCES Match_Id_Table(matchId) ON DELETE SET NULL),
-              PRIMARY KEY(matchId, puuId, timestamp)'''
-
+              PRIMARY KEY(matchId, puuId, timestamp),
+              FOREIGN KEY(matchId) REFERENCES Match_Id_Table(matchId) ON DELETE SET NULL);
+              '''
         commit_mesage = "Table 'Match_IDs' created successfully!"
 
         self._create_db_table(self.database_location_absolute_path,
