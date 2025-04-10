@@ -685,7 +685,14 @@ class Pipeline:
 
                         if event['type'] in ["ELITE_MONSTER_KILL", "CHAMPION_KILL", "BUILDING_KILL"]:
                             in_game_id_e = event.get('killerId')
-                            puuid_e = participant_ids.get(in_game_id_e)
+
+                            if in_game_id_e == 0:
+                                puuid_e = "Minion"
+                            else:
+                                puuid_e = participant_ids.get(in_game_id_e)
+
+                            logging.info(in_game_id_e)
+                            logging.info(puuid_e)
                             position = event.get('position', {})
                             position_x_e, position_y_e = position.get(
                                 'x'), position.get('y')
@@ -693,7 +700,7 @@ class Pipeline:
                             teamId_teamPos_e = self._get_teamId_teamPos(
                                 puuid_e, id)
 
-                            if teamId_teamPos_e == None:
+                            if teamId_teamPos_e == None and puuid_e != "Minion":
                                 logging.warning(
                                     f"Excluding this frame data |\n puuid: {puuid_e}, event: {event['type']}, matchId: {id}")
                                 break
@@ -721,9 +728,11 @@ class Pipeline:
 
                 general_timestamp = frame['timestamp']
                 for participantId, participantFrame in frame['participantFrames'].items():
-                    puuid_p = participant_ids[in_game_id]
 
                     in_game_id_p = participantId
+
+                    puuid_p = participant_ids.get(int(in_game_id_p))
+
                     teamId_teamPos_p = self._get_teamId_teamPos(puuid_p, id)
 
                     if teamId_teamPos_p == None:
@@ -742,11 +751,12 @@ class Pipeline:
                                          position_x_p, position_y_p, timestamp_p, event_name_p, event_type_p)
                     data_events.append(participant_event)
 
-            # RANDOM CHECK
+            # logging.info(json.dumps(data_events, indent=4))
+            print("Hello")
             if iter_ == 50:
                 logging.info(data_events)
 
-            if iter_ == 1:
+            if iter_ == 0:
                 break
 
         with self._get_connection(self.database_location_absolute_path) as connection:
