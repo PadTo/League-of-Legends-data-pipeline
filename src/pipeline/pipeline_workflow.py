@@ -12,6 +12,7 @@ import time
 
 
 class Pipeline:
+    # TODO: MAYBE add functionality for different sql table structures
     def __init__(self, db_save_location: str, logging_config_path: str, rate_time_limit=(100, 120), eventTypesToConsider=None):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
@@ -946,6 +947,7 @@ class Pipeline:
         self._collect_match_id_by_puuid()
         self._collect_match_data_by_matchId()
         self._collect_match_timeline_by_matchId()
+    # TODO: MAYBE add an additional option to skip some data collection processes if the pipeline is to be run more than once
 
     def start_pipeline(self):
         """
