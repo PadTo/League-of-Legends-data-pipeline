@@ -13,6 +13,29 @@ import time
 
 class Pipeline:
     def __init__(self, db_save_location: str, logging_config_path: str, rate_time_limit=(100, 120), eventTypesToConsider=None):
+        """
+        Initializes the class with necessary configurations for data collection, logging, and API interaction.
+
+        Parameters:
+          db_save_location (str): The location where the database file will be saved.
+          logging_config_path (str): The path to the logging configuration file.
+          rate_time_limit (tuple, optional): A tuple specifying the rate limit for API calls. 
+                                            The first value is the maximum number of calls allowed,
+                                            and the second value is the time frame in seconds for the maximum number of calls (default is (100, 120)).
+          eventTypesToConsider (list, optional): A list of event types to be considered for processing. 
+                                                If None, the default event types are ["ELITE_MONSTER_KILL", "CHAMPION_KILL", "BUILDING_KILL"].
+
+        Initializes the following attributes:
+          - API_key: The API key for Riot API, fetched using the `get_riot_api_key()` method.
+          - db_save_location_path: The path to the database location.
+          - CallsAPI: An instance of the `RiotApi` class initialized with the API key.
+          - ResponseFiltersAPI: An instance of the `API_JsonResponseFilters` class used for filtering API responses.
+          - curr_collection_date: The current date as a string, used for data collection.
+          - database_location_absolute_path: The absolute path to the database file where data will be stored.
+          - logger: An instance of the logger, configured with the logging configuration file.
+          - eventTypesToConsider: A list of event types to be considered for data collection.
+          - sleep_duration_after_API_call: A float value representing the time to sleep between API calls based on the rate limit.
+        """
         self.API_key = get_riot_api_key()
         self.db_save_location_path = Path(db_save_location)
         self.CallsAPI = RiotApi(self.API_key)
@@ -34,6 +57,16 @@ class Pipeline:
             rate_time_limit[0]
 
     def _logging_setup(self, config_path):
+        """
+        Sets up and configures the logging module using a JSON config file.
+
+        Args:
+            config_path (str or Path): Path to the logging configuration file.
+
+        Returns:
+            logging.Logger: Configured logger instance.
+        """
+
         logger = logging.getLogger("pipeline_logger")
         with open(config_path) as f_in:
             config = json.load(f_in)
@@ -42,31 +75,52 @@ class Pipeline:
         return logger
 
     def _create_all_tables(self):
-
+        """
+        Creates all necessary database tables by invoking individual table creation methods.
+        """
         self._create_database()
         self._create_summoner_entries_table()
         self._create_match_ids_table()
-
         self._create_match_data_teams_table()
         self._create_match_data_participants_table()
-
         self._create_match_timeline_table()
 
     def _create_database(self):
-
+        """
+        Creates the database file if it does not already exist.
+        """
         if self.database_location_absolute_path.is_file():
-            print("Database Already Exists.")
+            self.logger.warning("Database already exists.")
         else:
             with sqlite3.connect(self.database_location_absolute_path) as connection:
-                print("Database Created.")
+                self.logger.info("Database created.")
 
     def _get_connection(self, database_path):
+        """
+        Opens a connection to the SQLite database and enables foreign key support.
+
+        Args:
+            database_path (str or Path): Absolute path to the database.
+
+        Returns:
+            sqlite3.Connection: SQLite database connection.
+        """
+
         connection = sqlite3.connect(database_path)
         # Enable FK constraints
         connection.execute("PRAGMA foreign_keys = ON;")
         return connection
 
     def _create_db_table(self, database_path, create_table_query: str, commit_message: str):
+        """
+        Executes a SQL query to create a table in the database.
+
+        Args:
+            database_path (str or Path): Path to the SQLite database.
+            create_table_query (str): SQL query to create the table.
+            commit_message (str): Message to print after successful table creation.
+        """
+
         with self._get_connection(database_path) as connection:
 
             cursor = connection.cursor()
@@ -76,9 +130,12 @@ class Pipeline:
             connection.commit()
 
             # Print a confirmation message
-            print(commit_message)
+            self.logger.info(commit_message)
 
     def _create_summoner_entries_table(self):
+        """
+        Creates the 'Summoners_Table' which stores summoner PUUIDs and ranked info.
+        """
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Summoners_Table(
                 puuid TEXT PRIMARY KEY,
@@ -92,6 +149,9 @@ class Pipeline:
             self.database_location_absolute_path, create_table_query, commit_message)
 
     def _create_match_ids_table(self):
+        """
+        Creates the 'Match_ID_Table' to link match IDs with summoner PUUIDs.
+        """
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Match_ID_Table(
                 matchId TEXT PRIMARY KEY,
@@ -104,6 +164,9 @@ class Pipeline:
             self.database_location_absolute_path, create_table_query, commit_message)
 
     def _create_match_data_teams_table(self):
+        """
+        Creates the 'Match_Data_Teams_Table' to store team-level match statistics.
+        """
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Match_Data_Teams_Table(
                 matchId TEXT,
@@ -129,6 +192,9 @@ class Pipeline:
             self.database_location_absolute_path, create_table_query, commit_message)
 
     def _create_match_data_participants_table(self):
+        """
+        Creates the 'Match_Data_Participants_Table' to store participant-level statistics.
+        """
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Match_Data_Participants_Table (
                 puuId TEXT,
@@ -184,7 +250,18 @@ class Pipeline:
             self.database_location_absolute_path, create_table_query, commit_message)
 
     def _create_match_timeline_table(self):
+        """
+        Creates the 'Match_Timeline_Table' for storing event data during matches.
 
+        The table captures positional and event-specific information from match timelines.
+        - Events include: BUILDING_KILL, CHAMPION_KILL, and ELITE_MONSTER_KILL.
+        - Types include: MOVEMENT, DRAGON, HERALD, HORDE, BARON, and ATAKHAN.
+
+        Notes:
+            - If the event is BUILDING_KILL, `teamId` represents the team that lost the building.
+            - `puuId` refers to the player who triggered the event (0 if none).
+            - Enforces a composite primary key on (matchId, puuId, timestamp).
+        """
         # Events can be TURRET_PLATE_DESTROYED,BUILDING_KILL
         # Type can be MOVEMENT, DRAGON, HERALD, HORDE, ATAKHAN etc.
 
@@ -211,7 +288,21 @@ class Pipeline:
                               commit_mesage)
 
     def _collect_summoner_entries_by_tier(self, tiers=None, divisions=None):
+        """
+        Collects summoner entries for specified tiers and divisions using Riot's API.
 
+        Args:
+            tiers (list, optional): List of tier names (e.g., ["CHALLENGER", "GOLD"]). Defaults to all tiers.
+            divisions (list, optional): List of division levels (e.g., ["I", "II"]). Defaults to all divisions.
+
+        Raises:
+            TypeError: If either `tiers` or `divisions` is not a list.
+            ValueError: If any tier or division is not among the allowed values.
+
+        Notes:
+            - Handles pagination for the CHALLENGER tier.
+            - Summoner data is formatted as tuples: (puuid, current_tier, current_division, date).
+        """
         valid_tiers = ["CHALLENGER", "MASTER", "DIAMOND", "EMERALD",
                        "PLATINUM", "GOLD", "SILVER", "BRONZE",
                        "IRON"]
@@ -253,7 +344,7 @@ class Pipeline:
                         summoner_entries = self.CallsAPI.get_summoner_entries_by_tier(
                             tier=tier, pages=pages)
                     except Exception as e:
-                        logging.error(f"{e}")
+                        self.logger.error(f"{e}")
 
                     try:
                         if summoner_entries == None or len(summoner_entries) == 0:
@@ -261,8 +352,8 @@ class Pipeline:
                             break
                     except Exception as e:
                         type_of_entries = type(summoner_entries)
-                        logging.error(f"Unexpected error occurred: {e}")
-                        logging.info(
+                        self.logger.error(f"Unexpected error occurred: {e}")
+                        self.logger.info(
                             f"Summoner Entries DataType: {type_of_entries} | Summoner Entries Variable: {summoner_entries}")
 
                     for summoner in summoner_entries:
@@ -287,17 +378,17 @@ class Pipeline:
                             cursor.executemany(insert_query, data)
                             connection.commit()
 
-                            logging.info(
+                            self.logger.info(
                                 f"Insert successful| Tier: {tier}, Division: {current_division}, Page: {pages}")
 
                     except sqlite3.Error as e:
-                        logging.error(f"Database error: {e}")
+                        self.logger.error(f"Database error: {e}")
 
                     pages += 1
                     time.sleep(self.sleep_duration_after_API_call)
 
             else:
-                logging.info("Started Else")
+
                 for division in divisions:
                     stop = False
                     pages = 1
@@ -310,7 +401,7 @@ class Pipeline:
                                 tier=tier, division=division, pages=pages)
 
                         except Exception as e:
-                            logging.error(f"{e}")
+                            self.logger.error(f"{e}")
 
                         try:
                             if summoner_entries == None or len(summoner_entries) == 0:
@@ -318,8 +409,9 @@ class Pipeline:
                                 break
                         except Exception as e:
                             type_of_entries = type(summoner_entries)
-                            logging.error(f"Unexpected error occurred: {e}")
-                            logging.info(
+                            self.logger.error(
+                                f"Unexpected error occurred: {e}")
+                            self.logger.info(
                                 f"Summoner Entries DataType: {type_of_entries} | Summoner Entries Variable: {summoner_entries}")
 
                         for summoner in summoner_entries:
@@ -343,16 +435,28 @@ class Pipeline:
 
                                 cursor.executemany(insert_query, data)
                                 connection.commit()
-                                logging.info(
+                                self.logger.info(
                                     f"Insert successful| Tier: {tier}, Division: {current_division}, Page: {pages}")
                         except sqlite3.Error as e:
-                            logging.error(f"Databases error: {e}")
+                            self.logger.error(f"Databases error: {e}")
 
                         pages += 1
                         time.sleep(self.sleep_duration_after_API_call)
 
     def _collect_match_id_by_puuid(self):
+        """
+        Fetches all puuids from the 'Summoners_Table' and collects corresponding match IDs via the Riot API.
 
+        For each summoner puuid:
+            - Makes an API call to retrieve match IDs.
+            - Associates each match ID with the puuid.
+            - Inserts the results into the 'Match_ID_Table'.
+
+        Raises:
+            sqlite3.Error: If there's an issue connecting to or querying the database.
+            sqlite3.IntegrityError: If foreign key constraints fail.
+            Exception: For general API-related errors.
+        """
         try:
             with self._get_connection(self.database_location_absolute_path) as connection:
                 cursor = connection.cursor()
@@ -360,7 +464,7 @@ class Pipeline:
                 puuid_list = cursor.execute(fetch_query).fetchall()
 
         except sqlite3.Error as e:
-            logging.error(f"Database error: {e}")
+            self.logger.error(f"Database error: {e}")
 
         data = list()
         for puuid in puuid_list:
@@ -371,7 +475,7 @@ class Pipeline:
                     puuId=puuid_str)
 
             except Exception as e:
-                logging.error(f"{e}")
+                self.logger.error(f"{e}")
 
             for match_id in temp_match_ids:
                 data.append((match_id, puuid_str))
@@ -387,15 +491,29 @@ class Pipeline:
                 cursor.executemany(insert_query, data)
                 connection.commit()
 
-                logging.info("Successfully inserted matchID's")
+                self.logger.info("Successfully inserted matchID's")
 
         except sqlite3.IntegrityError as e:
-            logging.error(f"Foreign key constraint failed: {e}")
+            self.logger.error(f"Foreign key constraint failed: {e}")
 
         except sqlite3.Error as e:
-            logging.error(f"Database error: {e}")
+            self.logger.error(f"Database error: {e}")
 
     def _get_majority_tier(self, player_puuids: list):
+        """
+        Determines the most common ranked tier among a list of players.
+
+        Args:
+            player_puuids (list): List of player puuids (unique Riot identifiers).
+
+        Returns:
+            str: The tier (e.g., "GOLD", "DIAMOND") with the highest frequency.
+
+        Notes:
+            - Makes an API call per player.
+            - Skips players with missing or unknown tier information.
+        """
+
         tier_freq_dict = {}
         for puuid in player_puuids:
             time.sleep(self.sleep_duration_after_API_call)
@@ -404,7 +522,7 @@ class Pipeline:
                 tier = self.CallsAPI.get_summoner_tier_from_puuid(puuid)
 
             except Exception as e:
-                logging.error(f"{e}")
+                self.logger.error(f"{e}")
 
             if tier:
                 tier_freq_dict[tier] = tier_freq_dict.get(tier, 0) + 1
@@ -412,7 +530,23 @@ class Pipeline:
         return max(tier_freq_dict, key=tier_freq_dict.get)
 
     def _collect_match_data_by_matchId(self):
+        """
+        Fetches full match data using match IDs stored in the database and prepares data for teams and participants.
 
+        Process:
+            - Fetches all match IDs from 'Match_ID_Table'.
+            - For each match:
+                - Retrieves match data via Riot API.
+                - Determines the game tier from participant puuids using majority voting.
+                - Extracts relevant information for both teams.
+
+        Raises:
+            sqlite3.Error: If database connection or fetch fails.
+            Exception: For API-related errors.
+
+        Returns:
+            Populates `data_teams` and `data_participants` for future insertion.
+        """
         try:
             with sqlite3.connect(self.database_location_absolute_path) as connection:
                 cursor = connection.cursor()
@@ -625,7 +759,19 @@ class Pipeline:
             logging.error(f"Database error:{e}")
 
     def _get_teamId_teamPos(self, puuid, match_id):
+        """
+        Fetches the team ID and team position for a player in a given match.
 
+        Parameters:
+        puuid (str): The unique identifier for the player or "Minion" for minion.
+        match_id (str): The match identifier.
+
+        Returns:
+        tuple: A tuple containing the team ID and team position. If no data is found,
+              it logs a warning and returns None.
+              - If the player is a minion, it returns (None, "").
+              - Otherwise, it returns the (teamId, teamPosition) from the database.
+        """
         if puuid == "Minion":
 
             return (None, "")
@@ -638,14 +784,27 @@ class Pipeline:
                 query_data = cursor.execute(fetch_query).fetchall()
 
                 if len(query_data) == 0:
-                    logging.warning(
+                    self.logger.warning(
                         f"No id and position data for player | puuid: {puuid} matchId: {match_id}")
                     return None
                 else:
                     return query_data[0]
 
     def _collect_match_timeline_by_matchId(self):
+        """
+        Collects the timeline data for all matches from the database and stores it in the `Match_Timeline_Table`.
 
+        This function processes various events in the match timeline (e.g., champion kills, monster kills, 
+        building kills, participant frames) and inserts the event data into the database.
+
+        It handles the following types of events:
+        - ELITE_MONSTER_KILL
+        - CHAMPION_KILL
+        - BUILDING_KILL
+        - PARTICIPANT_FRAME (position)
+
+        Each event is associated with the corresponding player's team ID, position, and match ID.
+        """
         with self._get_connection(self.database_location_absolute_path) as connection:
             try:
 
@@ -653,11 +812,11 @@ class Pipeline:
                 fetch_query = '''
                     SELECT DISTINCT matchId FROM Match_Data_Participants_Table '''
                 match_ids = cursor.execute(fetch_query).fetchall()
-                logging.info(
+                self.logger.info(
                     "Successfully fetched matchId data from the database participants table ")
                 print(match_ids)
             except sqlite3.Error as e:
-                logging.error(f"Database error: {e}")
+                self.logger.error(f"Database error: {e}")
 
         data_events = []
         for iter_, match_id in enumerate(match_ids):
@@ -674,7 +833,8 @@ class Pipeline:
                 participant_ids[in_game_id] = puuid
 
             if iter_ == 0:
-                logging.info(f"CHECKING: Participant id's: {participant_ids}")
+                self.logger.info(
+                    f"CHECKING: Participant id's: {participant_ids}")
 
             for frame in data['info']['frames']:
 
@@ -698,7 +858,7 @@ class Pipeline:
                                 puuid_e, id)
 
                             if teamId_teamPos_e == None and puuid_e != "Minion":
-                                logging.warning(
+                                self.logger.warning(
                                     f"Excluding this frame data |\n puuid: {puuid_e}, event: {event['type']}, matchId: {id}")
                                 break
 
@@ -723,7 +883,7 @@ class Pipeline:
                                        position_x_e, position_y_e, timestamp_e, event_name_e, event_type_e)
                         data_events.append(frame_event)
 
-                        logging.info(f"Frame Event:{frame_event}")
+                        self.logger.info(f"Frame Event:{frame_event}")
 
                 general_timestamp = frame['timestamp']
                 for participantId, participantFrame in frame['participantFrames'].items():
@@ -735,7 +895,7 @@ class Pipeline:
                     teamId_teamPos_p = self._get_teamId_teamPos(puuid_p, id)
 
                     if teamId_teamPos_p == None:
-                        logging.warning(
+                        self.logger.warning(
                             f"Excluding this frame data |\n puuid: {puuid_p}, event: PARTICIPANT_FRAME, matchId: {id}")
                         break
                     team_id_p, team_position_p = teamId_teamPos_p[0], teamId_teamPos_p[1]
@@ -750,10 +910,8 @@ class Pipeline:
                                          position_x_p, position_y_p, timestamp_p, event_name_p, event_type_p)
                     data_events.append(participant_event)
 
-            # logging.info(json.dumps(data_events, indent=4))
-            print("Hello")
             if iter_ == 50:
-                logging.info(data_events)
+                self.logger.info(data_events)
 
             if iter_ == 0:
                 break
@@ -778,13 +936,25 @@ class Pipeline:
             connection.commit()
 
     def _collect_data(self):
-        # self._collect_summoner_entries_by_tier()
-        # self._collect_match_id_by_puuid()
-        # self._collect_match_data_by_matchId()
+        """
+        Collects various data for the project, including match data and timeline data.
+
+        This function calls the necessary methods to gather match ID data, match data, and match timeline data.
+        """
+
+        self._collect_summoner_entries_by_tier()
+        self._collect_match_id_by_puuid()
+        self._collect_match_data_by_matchId()
         self._collect_match_timeline_by_matchId()
-        pass
 
     def start_pipeline(self):
+        """
+        Starts the entire data collection pipeline by creating the database, creating the necessary tables,
+        and then collecting the data.
+
+        This function initiates the process of setting up the database and collecting all the required data for
+        the project.
+        """
         self._create_database()
         self._create_all_tables()
         self._collect_data()
