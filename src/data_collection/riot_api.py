@@ -1,5 +1,6 @@
 import requests
 import json
+import logging
 
 
 class StatusCodeError(Exception):
@@ -9,15 +10,40 @@ class StatusCodeError(Exception):
         super().__init__(f"Response Code {status_code}: {message}")
 
 
-class RiotApi:
-    """Summary of class here.
+TODO: "ADD LOGGING and Replace print statements"
 
-    Longer class information...
-    Longer class information...
+
+class RiotApi:
+    """
+    A class to interact with the Riot Games API.
+
+    This class provides methods to fetch data related to summoner information, 
+    tier and division, match IDs, and other game-related data from the Riot API.
 
     Attributes:
-        likes_spam: A boolean indicating if we like SPAM or not.
-        eggs: An integer count of the eggs we have laid.
+        riot_api_key (str): The API key for authenticating requests to Riot API.
+        base_url_euw1 (str): The base URL for the EUW1 server.
+        base_url_europe (str): The base URL for the Europe server.
+        request_header (dict): The headers used in the API requests, including the API key.
+
+    Methods:
+        __init__(riot_api_key):
+            Initializes the API with the given Riot API key.
+
+        status_response_exception(status_code) -> bool:
+            Handles different HTTP status codes and raises exceptions if the status code is not 200.
+
+        get_summoner_entries_by_tier(queue="RANKED_SOLO_5x5", tier="CHALLENGER", division="I", pages=1) -> dict:
+            Fetches summoner entries by tier, division, and queue type.
+
+        get_summoner_tier_from_puuid(puuid: str):
+            Retrieves the competitive tier for a given summoner's PuuID.
+
+        get_puuId_from_summonerId(summonerId):
+            Retrieves the PuuID for a given summoner ID.
+
+        get_matchIds_from_puuId(puuId: str, game_type="ranked", start=0, count=100):
+            Fetches match IDs for a given PuuID, based on the game type and number of matches.
     """
 
     def __init__(self, riot_api_key):
@@ -26,29 +52,18 @@ class RiotApi:
         self.base_url_europe = "https://europe.api.riotgames.com"
         self.request_header = {"X-Riot-Token": self.riot_api_key}
 
-    def print_underscore_line(self, n=60):
-        """Generates a line of underscores.
-
-        Args:
-            n (int, optional): Length of underscore line. Defaults to 60.
-
-        Returns:
-            str: A string of underscores
-        """
-        out_str = "_" * n
-        return out_str
-
     def status_response_exception(self, status_code) -> bool:
-        """Handles different HTTP status codes and raises exceptions.
+        """
+        Handles different HTTP status codes and raises exceptions if the status code is not 200.
 
         Args:
-            status_code (int): HTTP status code from API response
+            status_code (int): The HTTP status code from the API response.
 
         Raises:
-            StatusCodeError: If status code is not 200
+            StatusCodeError: If the status code is not 200, raises a custom exception with a message.
 
         Returns:
-            bool: True if status code is 200
+            bool: True if the status code is 200, otherwise raises an exception.
         """
         response_code_dict = {
             200:  "Request Successful",
@@ -74,19 +89,20 @@ class RiotApi:
             queue="RANKED_SOLO_5x5",
             tier="CHALLENGER",
             division="I", pages=1) -> dict:
-        """Fetches summoner entries by rank from Riot API.
+        """
+        Fetches summoner entries by rank from the Riot API.
 
         Args:
-            queue (str, optional): Type of ranked queue. Defaults to "RANKED_SOLO_5x5".
-            tier (str, optional): Competitive tier. Defaults to "CHALLENGER".
-            division (str, optional): Rank division. Defaults to "I".
-            pages (int, optional): Number of result pages. Defaults to 1.
+            queue (str, optional): The type of ranked queue. Defaults to "RANKED_SOLO_5x5".
+            tier (str, optional): The competitive tier. Defaults to "CHALLENGER".
+            division (str, optional): The rank division. Defaults to "I".
+            pages (int, optional): The number of result pages to fetch. Defaults to 1.
 
         Returns:
-            list: JSON response containing summoner entries (if there are no entries on the n'th page the list length is 0)
+            dict: A JSON response containing summoner entries.
 
         Raises:
-            StatusCodeError: If API request fails
+            StatusCodeError: If the API request fails or returns an error.
         """
         summoner_entries_endpoint = f"/lol/league-exp/v4/entries/{queue}/{tier}/{division}?page={pages}"
         url = "".join([self.base_url_euw1, summoner_entries_endpoint])
@@ -106,10 +122,20 @@ class RiotApi:
         except Exception as e:
             print(f"Unexpected error fetching summoner entries: {e}")
             raise e
-        finally:
-            print(self.print_underscore_line())
 
     def get_summoner_tier_from_puuid(self, puuid: str):
+        """
+        Retrieves the competitive tier for a given summoner's PuuID.
+
+        Args:
+            puuid (str): The Player Unique User ID (PuuID) of the summoner.
+
+        Returns:
+            str: The tier of the summoner.
+
+        Raises:
+            StatusCodeError: If the API request fails or returns an error.
+        """
         puuid_str = "/" + puuid
         summoner_league_entries_endpoint = "/lol/league/v4/entries/by-puuid"
         url = "".join(
@@ -128,16 +154,17 @@ class RiotApi:
         return tier
 
     def get_puuId_from_summonerId(self, summonerId):
-        """Retrieves PuuID for a given Summoner ID.
+        """
+        Retrieves PuuID for a given Summoner ID.
 
         Args:
-            summonerId (str): Encrypted Summoner ID
+            summonerId (str): The encrypted Summoner ID.
 
         Returns:
-            str: PuuID of the summoner
+            str: The PuuID of the summoner.
 
         Raises:
-            StatusCodeError: If API request fails
+            StatusCodeError: If the API request fails or returns an error.
         """
         encryptedSummonerId = summonerId
         puuId_endpoint = f"/lol/summoner/v4/summoners/{encryptedSummonerId}"
@@ -158,23 +185,22 @@ class RiotApi:
             print(f"Unexpected error fetching PuuId: {e}")
             raise e
 
-        finally:
-            print(self.print_underscore_line())
-
     def get_matchIds_from_puuId(self, puuId: str, game_type="ranked", start=0, count=100):
         # TODO: Create an error for bad game_type parameter
-        """Fetches match IDs for a given PuuID.
+        """
+        Fetches match IDs for a given PuuID, based on the game type and number of matches.
 
         Args:
-            puuId (str): Player Unique User ID
-            start (int): Starting Match ID point
-            count (int): Number of Match ID's to display
+            puuId (str): The Player Unique User ID.
+            game_type (str, optional): The type of game (e.g., "ranked"). Defaults to "ranked".
+            start (int, optional): The starting point for fetching matches. Defaults to 0.
+            count (int, optional): The number of matches to fetch. Defaults to 100.
 
         Returns:
-            list: List of match IDs
+            list: A list of match IDs.
 
         Raises:
-            StatusCodeError: If API request fails
+            StatusCodeError: If the API request fails or returns an error.
         """
         matchId_endpoint = f"/lol/match/v5/matches/by-puuid/{puuId}/ids"
         matchId_parameters = {'type': game_type,
@@ -198,8 +224,6 @@ class RiotApi:
         except Exception as e:
             print(f"Unexpected error fetching matchId: {e}")
             raise e
-        finally:
-            self.print_underscore_line()
 
     def get_match_data_from_matchId(self, matchId):
         """Retrieves detailed match data for a specific match ID.
@@ -231,9 +255,6 @@ class RiotApi:
             print("Unexpected error fetching match data")
             raise e
 
-        finally:
-            self.print_underscore_line()
-
     def get_match_timestamps_from_matcId(self, matchId):
         """Fetches match timeline for a specific match ID.
 
@@ -262,32 +283,3 @@ class RiotApi:
         except Exception as e:
             print(f"Unexpected error fetching match timeline: {e}")
             raise e
-        finally:
-            self.print_underscore_line()
-
-        # Testing
-
-
-if __name__ == "__main__":
-    from riot_key_folder.riot_api_key import get_riot_api_key
-
-    key = get_riot_api_key()
-    RiotApiFunc = RiotApi(key)
-
-    matches = RiotApiFunc.get_matchIds_from_puuId(
-        "XDbRav72vWyrPnMIHS_P2OFVbk6WptSNfYR6QOYfgFz4ioG_lzcuKUtFdJR9FUNuF97XmG8t9Xm_eA", 'ranked')
-
-    # matchdata = RiotApiFunc.get_match_data_from_matchId("EUW1_7266118212")
-    # print(json.dumps(matchdata, indent=4))
-    # print(json.dumps(SummonerIDs[0], indent=4))
-    # print(len(SummonerIDs))
-
-    k = RiotApiFunc.get_summoner_tier_from_puuid(
-        "6v_d5DaAe_KJZIFqU-BvUCKz_lAybNvvl7Q_W00-IN_XMNhRb8FYawiYs-UXHzmDtrA_I2VTO9Dvog")
-    print(k)
-    # print(SummonerIDs)
-    # print(type(matches))
-    # with open("summonerentries.txt", 'x') as f:
-    #     f.write(json.dumps(SummonerIDs, indent=4))
-
-    # RiotApiFunc.get_`match_timestamps_from_matcId("EUW1_7266118212")
