@@ -644,7 +644,6 @@ class Pipeline:
                 else:
                     return query_data[0]
 
-    # TODO: FIX CONSTRAINT ISSUES AND FIX EVENT FRAME TO BE CORRECTLY ADDED (THEY ARE NOT FOR NOW)
     def _collect_match_timeline_by_matchId(self):
 
         with self._get_connection(self.database_location_absolute_path) as connection:
@@ -664,6 +663,7 @@ class Pipeline:
         for iter_, match_id in enumerate(match_ids):
             id = match_id[0]
 
+            print(id)
             data = self.CallsAPI.get_match_timestamps_from_matcId(id)
 
             participant_ids = dict()
@@ -690,8 +690,6 @@ class Pipeline:
                             else:
                                 puuid_e = participant_ids.get(in_game_id_e)
 
-                            logging.info(in_game_id_e)
-                            logging.info(puuid_e)
                             position = event.get('position', {})
                             position_x_e, position_y_e = position.get(
                                 'x'), position.get('y')
@@ -725,6 +723,8 @@ class Pipeline:
                                        position_x_e, position_y_e, timestamp_e, event_name_e, event_type_e)
                         data_events.append(frame_event)
 
+                        logging.info(f"Frame Event:{frame_event}")
+
                 general_timestamp = frame['timestamp']
                 for participantId, participantFrame in frame['participantFrames'].items():
 
@@ -750,7 +750,7 @@ class Pipeline:
                                          position_x_p, position_y_p, timestamp_p, event_name_p, event_type_p)
                     data_events.append(participant_event)
 
-            logging.info(json.dumps(data_events, indent=4))
+            # logging.info(json.dumps(data_events, indent=4))
             print("Hello")
             if iter_ == 50:
                 logging.info(data_events)
@@ -761,7 +761,7 @@ class Pipeline:
         with self._get_connection(self.database_location_absolute_path) as connection:
             cursor = connection.cursor()
             insert_query = '''
-                INSERT INTO Match_Timeline_Table (
+                INSERT OR IGNORE INTO Match_Timeline_Table (
                     matchId,
                     puuId,
                     teamId,
