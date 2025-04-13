@@ -55,7 +55,7 @@ LoL_Analysis_Project/
 ## ⚙️ Features
 
 ###
-![SOME](photos/API%20Call%20Workflow.png.png)
+![SOME](photos/API%20Call%20Workflow.png)
 
 
 ### 🔗 Riot API Interface (`riot_api.py`)
