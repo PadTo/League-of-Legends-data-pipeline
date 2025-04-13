@@ -45,6 +45,8 @@ LoL_Analysis_Project/
 │   ├── RiotAPI_Processing_Functions.egg-info/
 │   ├── __init__.py
 ├── .gitignore
+├── photos/
+│   ├── API Call Workflow.png
 ├── documentation.txt
 ├── main.py
 ├── README.md
