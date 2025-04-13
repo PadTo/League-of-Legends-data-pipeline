@@ -54,11 +54,31 @@ LoL_Analysis_Project/
 </pre>
 ---
 
-## ⚙️ Features
-
-### API Call Workflow Logic
+## 🔁 API Call Workflow Overview
 ![](photos/API_Call_Workflow.png)
+1. **Input Queue, Tier, Division**  
+   → Selecting competitive tier (e.g. Challenger, Iron), queue (e.g. ranked, normal), and division (e.g. I, II)
+   → Call `/lol/league/v4/entries/{queue}/{tier}/{division}`  
+   → Retrieve summoner entries for each tier and division (ranked).
+   → Store data in an SQL database.
+   
+2. **Get Match IDs from puuIDs**  
+   → Fetch the puuID from the database.
+   → Call `/lol/match/v5/matches/by-puuid/{puuid}/ids`  
+   → Get list of recent match IDs for each player.
+   → Store data in an SQL database.
+   
+3 a). **Get Match Data**  
+   → Fetch the matchID from the database.
+   → Call `/lol/match/v5/matches/{matchId}`  
+   → Extract **participant** and **team** level data.
 
+3 b). **Get Match Timeline**  
+   → Fetch the matchID from the database.
+   → Call `/lol/match/v5/matches/{matchId}/timeline`  
+   → Get **events** and **frame-by-frame** gameplay data.
+
+## ⚙️ Features
 
 ### 🔗 Riot API Interface (`riot_api.py`)
 - Interacts with Riot’s Match-V5, Summoner-V4, and Spectator-V4 endpoints
