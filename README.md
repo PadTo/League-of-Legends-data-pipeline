@@ -18,7 +18,6 @@ This repository contains a modular, rate-limited, and well-logged data pipeline 
 
 ## 🏗️ Folder Structure
 
-Folder Structure:
 lol-data-pipeline/
 ├── riot_api.py                # Riot API wrapper class
 ├── pipeline_workflow.py       # Orchestrates the entire pipeline
