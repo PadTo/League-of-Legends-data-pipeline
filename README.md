@@ -94,59 +94,58 @@ This workflow describes fetching and storing League of Legends match data throug
 # 🗃️ Database Schema
 
 ## Overview
-The database consists of 5 interrelated tables that store League of Legends match data at different granularities:
+The database consists of 5 interrelated tables storing League of Legends data:
 
 ```mermaid
 erDiagram
-    Summoners_Table ||--o{ Match_ID_Table : "1-to-many"
+    Summoners_Table ||--o{ Match_ID_Table : has
+    Match_ID_Table ||--o{ Match_Data_Teams_Table : contains
+    Match_ID_Table ||--o{ Match_Data_Participants_Table : contains
+    Match_ID_Table ||--o{ Match_Timeline_Table : contains
+
     Summoners_Table {
-        TEXT puuid PK
-        TEXT current_tier
-        TEXT current_division
-        TEXT date_collected
+        TEXT puuid PK "Unique player identifier"
+        TEXT current_tier "Current ranked tier"
+        TEXT current_division "Current division"
+        TEXT date_collected "Data collection timestamp"
     }
-    
-    Match_ID_Table ||--o{ Match_Data_Teams_Table : "1-to-many"
-    Match_ID_Table ||--o{ Match_Data_Participants_Table : "1-to-many"
-    Match_ID_Table ||--o{ Match_Timeline_Table : "1-to-many"
+
     Match_ID_Table {
-        TEXT matchId PK
-        TEXT puuid FK
+        TEXT matchId PK "Unique match identifier"
+        TEXT puuid FK "Reference to Summoners_Table"
     }
-    
+
     Match_Data_Teams_Table {
-        TEXT matchId FK
-        INTEGER teamId
-        TEXT gameTier
-        BOOLEAN teamWin
+        TEXT matchId FK "Reference to Match_ID_Table"
+        INTEGER teamId "Team identifier (100/200)"
+        TEXT gameTier "Consensus match tier"
+        BOOLEAN teamWin "Match outcome"
         INTEGER baronKills
         INTEGER dragonKills
         INTEGER towerKills
-        ...other_team_stats
-        PK (matchId, teamId)
+        PRIMARY KEY (matchId, teamId)
     }
-    
+
     Match_Data_Participants_Table {
-        TEXT puuId
-        TEXT matchId FK
-        INTEGER teamId
-        TEXT gameTier
+        TEXT puuId "Reference to Summoners_Table"
+        TEXT matchId FK "Reference to Match_ID_Table"
+        INTEGER teamId "Team identifier"
+        TEXT gameTier "Consensus match tier"
         INTEGER championKills
         INTEGER deaths
         FLOAT KDA
-        ...other_player_stats
-        PK (puuId, matchId)
+        PRIMARY KEY (puuId, matchId)
     }
-    
+
     Match_Timeline_Table {
-        TEXT matchId FK
-        TEXT puuId
-        INTEGER timestamp
-        TEXT event
-        TEXT type
-        INTEGER x
-        INTEGER y
-        PK (matchId, puuId, timestamp)
+        TEXT matchId FK "Reference to Match_ID_Table"
+        TEXT puuId "Event participant"
+        INTEGER timestamp "Event time (ms)"
+        TEXT event "Event type"
+        TEXT type "Sub-event classification"
+        INTEGER x "Map coordinate X"
+        INTEGER y "Map coordinate Y"
+        PRIMARY KEY (matchId, puuId, timestamp)
     }
 
 ## ⚙️ Features
