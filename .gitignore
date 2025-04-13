@@ -2,3 +2,4 @@ config.json
 *.txt
 *.pdf
 *.log
+*.db
