@@ -54,6 +54,10 @@ LoL_Analysis_Project/
 
 ## ⚙️ Features
 
+###
+![SOME](photos/API%20Call%20Workflow.png.png)
+
+
 ### 🔗 Riot API Interface (`riot_api.py`)
 - Interacts with Riot’s Match-V5, Summoner-V4, and Spectator-V4 endpoints
 - Fetches player PUUIDs, match histories, and timelines
