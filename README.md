@@ -90,6 +90,65 @@ This workflow describes fetching and storing League of Legends match data throug
 - **Extract**: 
   - Events data
   - Frame-by-frame gameplay data
+
+# 🗃️ Database Schema
+
+## Overview
+The database consists of 5 interrelated tables that store League of Legends match data at different granularities:
+
+```mermaid
+erDiagram
+    Summoners_Table ||--o{ Match_ID_Table : "1-to-many"
+    Summoners_Table {
+        TEXT puuid PK
+        TEXT current_tier
+        TEXT current_division
+        TEXT date_collected
+    }
+    
+    Match_ID_Table ||--o{ Match_Data_Teams_Table : "1-to-many"
+    Match_ID_Table ||--o{ Match_Data_Participants_Table : "1-to-many"
+    Match_ID_Table ||--o{ Match_Timeline_Table : "1-to-many"
+    Match_ID_Table {
+        TEXT matchId PK
+        TEXT puuid FK
+    }
+    
+    Match_Data_Teams_Table {
+        TEXT matchId FK
+        INTEGER teamId
+        TEXT gameTier
+        BOOLEAN teamWin
+        INTEGER baronKills
+        INTEGER dragonKills
+        INTEGER towerKills
+        ...other_team_stats
+        PK (matchId, teamId)
+    }
+    
+    Match_Data_Participants_Table {
+        TEXT puuId
+        TEXT matchId FK
+        INTEGER teamId
+        TEXT gameTier
+        INTEGER championKills
+        INTEGER deaths
+        FLOAT KDA
+        ...other_player_stats
+        PK (puuId, matchId)
+    }
+    
+    Match_Timeline_Table {
+        TEXT matchId FK
+        TEXT puuId
+        INTEGER timestamp
+        TEXT event
+        TEXT type
+        INTEGER x
+        INTEGER y
+        PK (matchId, puuId, timestamp)
+    }
+
 ## ⚙️ Features
 
 ### 🔗 Riot API Interface (`riot_api.py`)
@@ -104,11 +163,8 @@ This workflow describes fetching and storing League of Legends match data throug
   - Filter application and database storage
 - Enables batch collection and control over sample size and rank tier
 
-### 🧼 JSON Filtering Module (`processing/response_filters.py`)
-- Extracts:
-  - Key game events (kills, dragons, barons, towers)
-  - Player stats and item builds
-  - Timeline information for positional or time-based analyses
+### 🧼 JSON Filtering Module (IN PROGRESS)
+- TBD
 
 ### 🧱 Database Integration (`riot_data_database.db`)
 - Lightweight SQLite database setup
