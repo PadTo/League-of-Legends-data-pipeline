@@ -20,7 +20,7 @@ This repository contains a modular, rate-limited, and well-logged data pipeline 
 
 <pre>
 
-LoL_Analysis_Project/
+League-of-Legends-data-pipeline/
 ├── data/
 │   ├── riot_data_database.db
 ├── log_config/
