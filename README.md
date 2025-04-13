@@ -1,83 +1,102 @@
-# League of Legends Statistical Analysis Project (IN PROGRESS)
+# 🧩 League of Legends Data Pipeline
 
+> **Status**: In Development  
+> **Purpose**: Automated, configurable data pipeline for fetching, filtering, and storing *League of Legends* match data using Riot's official API.
 
-## Project Overview
-This project analyzes *League of Legends* gameplay data to identify patterns and strategies that differentiate high-Elo players from casual players
+---
 
-## Terminology
+## 🔍 Overview
 
-### Game-Specific Terms
-- **Elo Rating**: A ranking system used to determine player skill level
-- **MOBA**: Multiplayer Online Battle Arena, a strategy-based team game genre
-- **Creep Score**: The number of minions a player has killed for gold
-- **Recall Timers**: The cooldown time for returning to base
-- **Wave Management**: The strategy of controlling minion waves for advantage
-- **Pathing/Routes**: The movement strategy of players, especially junglers
-- **Jungle Monsters**: Neutral creatures in the jungle that provide experience and buffs
-- **Nexus**: The core structure that must be destroyed to win the game
-- **Turrets**: Defensive structures that attack enemies
-- **Champion**: A playable character with unique abilities
-- **In-Game Objectives**: Key map goals like Dragon, Baron, and Towers
-- **Vision Score**: A metric showing vision control through wards and reveals
-- **Rank**: The tiered ranking system from Iron to Challenger
-- **Early Game**: The first phase of a match, focusing on laning and farming
-- **Mid Game**: The transition phase where objectives become key
-- **Late Game**: The final phase where team fights and strategy decide the game
+This repository contains a modular, rate-limited, and well-logged data pipeline built around the [Riot Games API](https://developer.riotgames.com/). It automates the process of:
 
-### Technical Terms
-- **Significance Level**: The probability of rejecting a true null hypothesis in stats
-- **Linear Regression**: A statistical method for modeling relationships between variables
-- **Hypothesis Testing**: A statistical process to determine the validity of an assumption
-- **API**: Application Programming Interface, used for data retrieval
-- **Data Pipeline**: A system for collecting, processing, and analyzing data
+- Retrieving ranked match data across tiers and roles
+- Filtering relevant events and timelines
+- Storing structured results in a local SQLite database
+- Preparing clean datasets for statistical analysis and machine learning
 
-## Project Details
+---
 
-### 1. Objective Definitions
-To understand the performance patterns that differentiate high-level play from average gameplay through statistical analysis of in-game mechanics and strategies.
+## 🏗️ Folder Structure
 
-#### 1.1 Research Goals
-- **Creep Score and Recall Timers**
-  - Compare patterns between High-Elo vs Low-Elo players
-- **Effective Jungle Routes (High-Elo Only)**
-  - Identify Most Popular Champions
-  - Determine Highest Win-Rate Champions and their patterns
-- **High Elo Pathing vs Low Elo Pathing**
-  - Document general pathing patterns across Early, Mid, and Late Game
-  - Analyze pathing patterns when objectives are available (Dragon, Baron, Jungle Monsters)
-- **Player Movement Analysis**
-  - Track Early, Mid, and Late Game player movement based on lane positions
+<pre>
 
-#### 1.2 Success Metrics
-*To be defined: Specific metrics that will indicate successful analysis outcomes*
+LoL_Analysis_Project/
+├── data/
+│   ├── riot_data_database.db
+├── log_config/
+│   ├── log_config.json
+├── logs/
+├── notebooks/
+├── src/
+│   ├── __pycache__/
+│   ├── data_collection/
+│   │   ├── __ini__.py
+│   │   ├── riot_api.py
+│   ├── pipeline/
+│   │   ├── __init__py
+│   │   ├── pipeline_workflow.py
+│   ├── processing/
+│   │   ├── __init__.py
+│   │   ├── response_filters.py
+│   ├── riot_key_folder/
+│   │   ├── __init__.py
+│   │   ├── config_template.json
+│   │   ├── riot_api_key.py
+│   ├── RiotAPI_Processing_Functions.egg-info/
+│   ├── __init__.py
+├── .gitignore
+├── documentation.txt
+├── main.py
+├── README.md
+├── setup.py
+</pre>
+---
 
-#### 1.3 Data Requirements
-- **Player Rank Ranges for Analysis:**
-  - High Elo: Master to Challenger
-  - Mid-Elo: Diamond
-  - Low-Elo: Iron to Bronze
-- **Sample Size Requirements:**
-  *To be determined: Minimum number of games needed for statistically significant analysis*
+## ⚙️ Features
 
-#### 1.4 Technical Scope
-*To be defined: Technical boundaries and limitations of the project*
+### 🔗 Riot API Interface (`riot_api.py`)
+- Interacts with Riot’s Match-V5, Summoner-V4, and Spectator-V4 endpoints
+- Fetches player PUUIDs, match histories, and timelines
+- Implements robust error handling and rate limit compliance
 
-### 2. Project Phases
-1. **API Configuration**
-   - Setting up API connections
-2. **Setting up the Database and Retrieving Data**
-   - Creating SQL database and importing initial data using API calls
-3. **Data Processing & Cleaning (CURRENT STAGE)**
-   - Transforming, Normalizing and preparing data for analysis
-4. **Analysis Development**
-   - Creating statistical models and running analyses
-5. **Pattern Recognition**
-   - Identifying significant patterns and correlations
-6. **Visualization & Reporting**
-   - Creating visual representations and actionable insights
+### 🧠 Pipeline Controller (`pipeline_workflow.py`)
+- End-to-end orchestration of:
+  - Player and match data retrieval
+  - Timeline extraction
+  - Filter application and database storage
+- Enables batch collection and control over sample size and rank tier
 
-## Contributing
-*Guidelines for contributing to this project will be added here*
+### 🧼 JSON Filtering Module (`processing/response_filters.py`)
+- Extracts:
+  - Key game events (kills, dragons, barons, towers)
+  - Player stats and item builds
+  - Timeline information for positional or time-based analyses
 
-## License
-*License information will be placed here*
+### 🧱 Database Integration (`riot_data_database.db`)
+- Lightweight SQLite database setup
+- Stores structured data across:
+  - Match metadata
+  - Participant performance
+  - Event sequences and timelines
+
+### 🪵 Logging System (`logs/riot_data.log`)
+- Tracks request success/failure and error messages
+- Useful for debugging long pipeline runs
+- Controlled via `configs/logging_config.yaml`
+
+---
+
+## 🧪 How to Run
+
+```bash
+# Clone repo
+git clone https://github.com/yourusername/lol-data-pipeline.git
+
+# Set up environment
+pip install -r requirements.txt
+
+# Add your Riot API Key
+echo "RIOT_API_KEY=your_api_key_here" > riot_key_folder/riot_api_key.py
+
+# Run the pipeline
+python pipeline_workflow.py
