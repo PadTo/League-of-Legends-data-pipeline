@@ -18,32 +18,22 @@ This repository contains a modular, rate-limited, and well-logged data pipeline 
 
 ## 🏗️ Folder Structure
 
+<pre>
 lol-data-pipeline/
-|
-+-- riot_api.py                # Riot API wrapper class
-+-- pipeline_workflow.py       # Orchestrates the entire pipeline
-+-- processing/
-|   |
-|   +-- response_filters.py    # Functions to clean/filter JSON data (NOT YET FUNCTIONAL)
-|
-+-- riot_key_folder/
-|   |
-|   +-- riot_api_key.py        # Riot API key loading (excluded from Git)
-|
-+-- logs/
-|   |
-|   +-- riot_data.log          # Rotating logs for error tracking and debugging
-|
-+-- database/
-|   |
-|   +-- riot_data_database.db  # Local SQLite database for structured match storage
-|
-+-- configs/
-|   |
-|   +-- logging_config.yaml    # Logging configuration for customization
-|
-+-- README.md
-
+├── riot_api.py                # Riot API wrapper class
+├── pipeline_workflow.py       # Orchestrates the entire pipeline
+├── processing/
+│   └── response_filters.py    # Functions to clean/filter JSON data (NOT YET FUNCTIONAL)
+├── riot_key_folder/
+│   └── riot_api_key.py        # Riot API key loading (excluded from Git)
+├── logs/
+│   └── riot_data.log          # Rotating logs for error tracking and debugging
+├── database/
+│   └── riot_data_database.db  # Local SQLite database for structured match storage
+├── configs/
+│   └── logging_config.yaml    # Logging configuration for customization
+└── README.md
+</pre>
 ---
 
 ## ⚙️ Features
