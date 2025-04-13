@@ -57,25 +57,25 @@ LoL_Analysis_Project/
 ## 🔁 API Call Workflow Overview
 ![](photos/API_Call_Workflow.png)
 1. **Input Queue, Tier, Division**  
-   → Selecting competitive tier (e.g. Challenger, Iron), queue (e.g. ranked, normal), and division (e.g. I, II)
-   → Call `/lol/league/v4/entries/{queue}/{tier}/{division}`  
+   → Selecting competitive tier (e.g. Challenger, Iron), queue (e.g. ranked, normal), and division (e.g. I, II).
+   → Call `/lol/league/v4/entries/{queue}/{tier}/{division}`.
    → Retrieve summoner entries for each tier and division (ranked).
    → Store data in an SQL database.
    
 2. **Get Match IDs from puuIDs**  
    → Fetch the puuID from the database.
-   → Call `/lol/match/v5/matches/by-puuid/{puuid}/ids`  
+   → Call `/lol/match/v5/matches/by-puuid/{puuid}/ids`.
    → Get list of recent match IDs for each player.
    → Store data in an SQL database.
    
 3. **Get Match Data**  
    → Fetch the matchID from the database.
-   → Call `/lol/match/v5/matches/{matchId}`  
+   → Call `/lol/match/v5/matches/{matchId}`.
    → Extract **participant** and **team** level data.
 
 4. **Get Match Timeline**  
    → Fetch the matchID from the database.
-   → Call `/lol/match/v5/matches/{matchId}/timeline`  
+   → Call `/lol/match/v5/matches/{matchId}/timeline`.
    → Get **events** and **frame-by-frame** gameplay data.
 
 ## ⚙️ Features
