@@ -118,7 +118,7 @@ This workflow describes fetching and storing League of Legends match data throug
 ### 🪵 Logging System (`logs/riot_data.log`)
 - Tracks request success/failure and error messages
 - Useful for debugging long pipeline runs
-- Controlled via `configs/logging_config.yaml`
+- Controlled via `configs/log_config.json`
 
 ---
 
