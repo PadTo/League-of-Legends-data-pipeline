@@ -68,12 +68,12 @@ LoL_Analysis_Project/
    → Get list of recent match IDs for each player.
    → Store data in an SQL database.
    
-3 a). **Get Match Data**  
+3. **Get Match Data**  
    → Fetch the matchID from the database.
    → Call `/lol/match/v5/matches/{matchId}`  
    → Extract **participant** and **team** level data.
 
-3 b). **Get Match Timeline**  
+4. **Get Match Timeline**  
    → Fetch the matchID from the database.
    → Call `/lol/match/v5/matches/{matchId}/timeline`  
    → Get **events** and **frame-by-frame** gameplay data.
