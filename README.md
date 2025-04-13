@@ -45,24 +45,6 @@ This repository contains a modular, rate-limited, and well-logged data pipeline 
   - Jungle tracking by timestamp
 
 ---
-
-## 📊 Recommended Figures for Analysis Repo
-
-In your **analysis repo**, consider showing:
-
-| Type | Graph/Figure | Description |
-|------|--------------|-------------|
-| 📉 Basic | Game duration histogram | Distribution across tiers or patches |
-| 🧠 Strategy | Heatmaps of player positions | Early game movements (e.g. jungle pathing) |
-| 🗺️ Objective | Timelines of first Dragon/Baron | Compare early vs late-game focus |
-| 🔄 Efficiency | Recall patterns | Mean/median recall times across roles |
-| 🔥 Momentum | Kill streak bursts per team | How quickly momentum builds in higher Elo |
-| 📈 Skill | CS over time curves | Creep Score vs Time for top players |
-| 📚 Learning | Regression models | Predict win rate using early-game stats |
-| 🎯 Clustering | Player role profiles | Using K-Means or PCA on feature sets |
-
----
-
 ## 🧪 How to Run
 
 ```bash
