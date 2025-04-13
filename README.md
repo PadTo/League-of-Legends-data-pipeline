@@ -89,14 +89,4 @@ LoL_Analysis_Project/
 ## 🧪 How to Run
 
 ```bash
-# Clone repo
-git clone https://github.com/yourusername/lol-data-pipeline.git
 
-# Set up environment
-pip install -r requirements.txt
-
-# Add your Riot API Key
-echo "RIOT_API_KEY=your_api_key_here" > riot_key_folder/riot_api_key.py
-
-# Run the pipeline
-python pipeline_workflow.py
