@@ -25,7 +25,7 @@ lol-data-pipeline/
 ├── processing/
 │   └── response_filters.py    # Functions to clean/filter JSON data (NOT YET FUNCTIONAL)
 ├── riot_key_folder/
-│   └── riot_api_key.py        # Riot API key loading (excluded from Git)
+│   └── riot_api_key.py        # Riot API key loading
 ├── logs/
 │   └── riot_data.log          # Rotating logs for error tracking and debugging
 ├── database/
