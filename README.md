@@ -54,30 +54,42 @@ LoL_Analysis_Project/
 </pre>
 ---
 
-## 🔁 API Call Workflow Overview
-![](photos/API_Call_Workflow.png)
-1. **Input Queue, Tier, Division**  
-   → Selecting competitive tier (e.g. Challenger, Iron), queue (e.g. ranked, normal), and division (e.g. I, II).
-   → Call `/lol/league/v4/entries/{queue}/{tier}/{division}`.
-   → Retrieve summoner entries for each tier and division (ranked).
-   → Store data in an SQL database.
-   
-2. **Get Match IDs from puuIDs**  
-   → Fetch the puuID from the database.
-   → Call `/lol/match/v5/matches/by-puuid/{puuid}/ids`.
-   → Get list of recent match IDs for each player.
-   → Store data in an SQL database.
-   
-3. **Get Match Data**  
-   → Fetch the matchID from the database.
-   → Call `/lol/match/v5/matches/{matchId}`.
-   → Extract **participant** and **team** level data.
+# 🔁 API Call Workflow
 
-4. **Get Match Timeline**  
-   → Fetch the matchID from the database.
-   → Call `/lol/match/v5/matches/{matchId}/timeline`.
-   → Get **events** and **frame-by-frame** gameplay data.
+## Overview
+This workflow describes fetching and storing League of Legends match data through Riot Games' API.
 
+![API Call Workflow](photos/API_Call_Workflow.png)
+
+## Workflow Steps
+
+### 1. Input Queue, Tier, Division
+- **Input**: Competitive tier (e.g., Challenger, Iron), queue (e.g., ranked, normal), and division (e.g., I, II)
+- **API Call**: `/lol/league/v4/entries/{queue}/{tier}/{division}`
+- **Action**: 
+  - Retrieve summoner entries for each tier and division (ranked)
+  - Store data in SQL database
+
+### 2. Get Match IDs from puuIDs
+- **Fetch**: puuID from the database
+- **API Call**: `/lol/match/v5/matches/by-puuid/{puuid}/ids`
+- **Action**: 
+  - Get the list of recent match IDs for each player
+  - Store data in SQL database
+
+### 3. Get Match Data
+- **Fetch**: matchID from the database
+- **API Call**: `/lol/match/v5/matches/{matchId}`
+- **Extract**: 
+  - Participant-level data
+  - Team-level data
+
+### 4. Get Match Timeline
+- **Fetch**: matchID from the database
+- **API Call**: `/lol/match/v5/matches/{matchId}/timeline`
+- **Extract**: 
+  - Events data
+  - Frame-by-frame gameplay data
 ## ⚙️ Features
 
 ### 🔗 Riot API Interface (`riot_api.py`)
