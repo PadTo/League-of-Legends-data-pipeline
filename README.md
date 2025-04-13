@@ -45,6 +45,8 @@ LoL_Analysis_Project/
 │   ├── RiotAPI_Processing_Functions.egg-info/
 │   ├── __init__.py
 ├── .gitignore
+├── photos/
+│   ├── API Call Workflow.png
 ├── documentation.txt
 ├── main.py
 ├── README.md
@@ -53,6 +55,10 @@ LoL_Analysis_Project/
 ---
 
 ## ⚙️ Features
+
+###
+![SOME](photos/API%20Call%20Workflow.png)
+
 
 ### 🔗 Riot API Interface (`riot_api.py`)
 - Interacts with Riot’s Match-V5, Summoner-V4, and Spectator-V4 endpoints
