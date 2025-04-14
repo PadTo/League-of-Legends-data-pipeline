@@ -11,7 +11,7 @@ from pathlib import Path
 import time
 
 
-class Pipeline:
+class RiotPipeline:
     # TODO: MAYBE add functionality for different sql table structures
     def __init__(self, db_save_location: str, logging_config_path: str, rate_time_limit=(100, 120), eventTypesToConsider=None):
         """
@@ -962,7 +962,7 @@ class Pipeline:
         self._collect_data()
 
 
-ppl = Pipeline('D:\LoL Analysis Project\data',
-               'D:\LoL Analysis Project\log_config\log_config.json')
+# ppl = RiotPipeline('D:\LoL Analysis Project\data',
+#                'D:\LoL Analysis Project\log_config\log_config.json')
 
-ppl.start_pipeline()
+# ppl.start_pipeline()
