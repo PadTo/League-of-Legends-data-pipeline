@@ -128,10 +128,12 @@ This workflow describes fetching and storing League of Legends match data throug
 To install the RiotAPI Processing Functions locally, follow these steps:
 
 Clone the repository:
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
-Run the following command to install the package locally:
+<pre>
+  git clone https://github.com/your-username/your-repo-name.git
+  cd your-repo-name
+</pre>
 
+Run the following command to install the package locally:
 <pre>
   pip install .
 </pre>
@@ -139,17 +141,18 @@ Run the following command to install the package locally:
 Make sure you're in the root directory of the project (where setup.py is located) before running the install command.
 
 ### Edit save_locations.json:
-
-{
-  "database_save_location": "YOUR/DESIRED/DATA/PATH",
-  "logging_configuration_filepath": "YOUR/DESIRED/LOG_CONFIG_PATH/log_config.json"
-}
+<pre>
+  {
+    "database_save_location": "YOUR/DESIRED/DATA/PATH",
+    "logging_configuration_filepath": "YOUR/DESIRED/LOG_CONFIG_PATH/log_config.json"
+  }
+</pre>
 
 ### Run the Main Script
 
 python main.py
 
-On the first run, you will be prompted to input your Riot API key. You can choose to reaplce it or skip.
+On the first run, you will be prompted to input your Riot API key. You can choose to replace it or skip.
 <pre>
   Do you want to replace the API key (Y for YES | N for NO)?
   If you type Y, you'll be prompted to enter your Riot API key:
