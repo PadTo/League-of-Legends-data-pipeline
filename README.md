@@ -46,7 +46,7 @@ League-of-Legends-data-pipeline/
 │   ├── __init__.py
 ├── .gitignore
 ├── photos/
-│   ├── API Call Workflow.png
+│   ├── API_Call_Workflow.png
 ├── documentation.txt
 ├── main.py
 ├── README.md
@@ -124,5 +124,38 @@ This workflow describes fetching and storing League of Legends match data throug
 
 ## 🧪 How to Run
 
-```bash
+### Installation
+To install the RiotAPI Processing Functions locally, follow these steps:
+
+Clone the repository:
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
+Run the following command to install the package locally:
+
+<pre>
+  pip install .
+</pre>
+
+Make sure you're in the root directory of the project (where setup.py is located) before running the install command.
+
+### Edit save_locations.json:
+
+{
+  "database_save_location": "YOUR/DESIRED/DATA/PATH",
+  "logging_configuration_filepath": "YOUR/DESIRED/LOG_CONFIG_PATH/log_config.json"
+}
+
+### Run the Main Script
+
+python main.py
+
+On the first run, you will be prompted to input your Riot API key. You can choose to reaplce it or skip.
+<pre>
+  Do you want to replace the API key (Y for YES | N for NO)?
+  If you type Y, you'll be prompted to enter your Riot API key:
+</pre>
+
+Once the key is entered, the pipeline will start and begin processing data.
+
+
 
