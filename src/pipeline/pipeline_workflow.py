@@ -1,4 +1,3 @@
-import logging.config
 from data_collection.riot_api import RiotApi
 from processing.response_filters import API_JsonResponseFilters
 from riot_key_folder.riot_api_key import get_riot_api_key
@@ -13,7 +12,7 @@ import time
 
 class RiotPipeline:
     # TODO: MAYBE add functionality for different sql table structures
-    def __init__(self, db_save_location: str, logging_config_path: str, rate_time_limit=(100, 120), eventTypesToConsider=None):
+    def __init__(self, db_save_location: str, rate_time_limit=(100, 120), eventTypesToConsider=None):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
@@ -45,8 +44,7 @@ class RiotPipeline:
         self.database_location_absolute_path = self.db_save_location_path / \
             ('riot_data_database' + '.db')
 
-        config_file_path = Path(logging_config_path)
-        self.logger = self._logging_setup(config_file_path)
+        self.logger = logging.getLogger("RiotApiPipeline_Log")
 
         if eventTypesToConsider == None:
             self.eventTypesToConsider = [
@@ -56,24 +54,6 @@ class RiotPipeline:
 
         self.sleep_duration_after_API_call = rate_time_limit[1] / \
             rate_time_limit[0]
-
-    def _logging_setup(self, config_path):
-        """
-        Sets up and configures the logging module using a JSON config file.
-
-        Args:
-            config_path (str or Path): Path to the logging configuration file.
-
-        Returns:
-            logging.Logger: Configured logger instance.
-        """
-
-        logger = logging.getLogger("pipeline_logger")
-        with open(config_path) as f_in:
-            config = json.load(f_in)
-
-        logging.config.dictConfig(config)
-        return logger
 
     def _create_all_tables(self):
         """
@@ -93,8 +73,13 @@ class RiotPipeline:
         if self.database_location_absolute_path.is_file():
             self.logger.warning("Database already exists.")
         else:
-            with sqlite3.connect(self.database_location_absolute_path) as connection:
-                self.logger.info("Database created.")
+            try:
+
+                with sqlite3.connect(self.database_location_absolute_path) as connection:
+                    self.logger.info("Database created.")
+            except sqlite3.Error as e:
+                self.logger.error(
+                    f"Database Error: {e} \n {self.database_location_absolute_path}")
 
     def _get_connection(self, database_path):
         """

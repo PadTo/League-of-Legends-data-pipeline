@@ -1,52 +1,57 @@
 import json
 import os
 from pathlib import Path
+import logging
+
+
+log = logging.getLogger("API Key Get|Set Logging")
+
+
+def api_format_checker(json_key):
+    api_key = json_key["riot_api_key"].strip()
+
+    if len(api_key) == 0 or api_key[0:5] != "RGAPI":
+        log.warning(
+            f"\nAPI_KEY is MISSING or in the WRONG format\n"
+            f"API_KEY Input: {api_key}\n")
+        log.info("IGNORE this warning if Riot API KEY structure has changed\n")
+    else:
+        log.info(f"\n \n API_KEY Loaded: {api_key} \n \n")
+        return api_key
 
 
 def get_riot_api_key():
-    config_folder_path = Path(__file__).parent
-    config_name = "config.json"
-    config_template_name = "config_template.json"
+    api_key_loc_folder = Path(__file__).parent
+    api_key_loc_file = "api_key_loc.json"
+    api_key_loc_template = "api_key_loc_temp.json"
 
-    configs = [config_name, config_template_name]
-    for config_file_name in configs:
-        config_path_abs = os.path.join(config_folder_path, config_file_name)
-        if os.path.exists(config_path_abs):
-
-            with open(config_path_abs) as f:
-                config = json.load(f)
-
-            api_key = config["riot_api_key"].strip()
-            if len(api_key) == 0 or api_key[0:5] != "RGAPI":
-                print(
-                    f"\nWARNING!\n"
-                    f"\nAPI_KEY is MISSING or in the WRONG format\n"
-                    f"API_KEY Input: {api_key}\n")
-
-                print("IGNORE this warning if Riot API KEY structure has changed\n")
-
-            else:
-                print(
-                    f"\n \n API_KEY Loaded: {api_key} \n \n")
+    api_key_locs = [api_key_loc_template, api_key_loc_file]
+    for api_key_loc_filename in api_key_locs:
+        api_key_loc_path = os.path.join(
+            api_key_loc_folder, api_key_loc_filename)
+        if os.path.exists(api_key_loc_path):
+            with open(api_key_loc_path) as f:
+                api_key_json = json.load(f)
+                api_key = api_format_checker(api_key_json)
 
             return api_key
 
 
 def set_riot_api_key(api_key: str):
-    config_folder_path = Path(__file__).parent
-    config_name = "config.json"
-    config_template_name = "config_template.json"
+    api_key_loc_folder = Path(__file__).parent
+    api_key_loc_file = "api_key_loc.json"
+    api_key_loc_template = "api_key_loc_temp.json"
 
-    configs = [config_name, config_template_name]
+    api_key_locs = [api_key_loc_template, api_key_loc_file]
 
-    for config in configs:
-        config_path_abs = config_folder_path / config_name
+    for api_key_loc_filename in api_key_locs:
+        api_key_loc_path = api_key_loc_folder / api_key_loc_filename
 
-        if os.path.exists(config_path_abs):
-            open(config_path_abs, "w").close()
+        if os.path.exists(api_key_loc_path):
+            open(api_key_loc_path, "w").close()
 
-            with open(config_path_abs, "w") as f:
+            with open(api_key_loc_path, "w") as f:
                 json.dump({'riot_api_key': api_key}, f)
 
-
-set_riot_api_key("zs")
+            # Check format after writing
+            api_format_checker({'riot_api_key': api_key})

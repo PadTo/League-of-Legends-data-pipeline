@@ -1,5 +1,4 @@
 import requests
-import json
 import logging
 
 
@@ -8,9 +7,6 @@ class StatusCodeError(Exception):
         self.status_code = status_code
         self.message = message
         super().__init__(f"Response Code {status_code}: {message}")
-
-
-TODO: "ADD LOGGING and Replace print statements"
 
 
 class RiotApi:
@@ -51,6 +47,7 @@ class RiotApi:
         self.base_url_euw1 = "https://euw1.api.riotgames.com"
         self.base_url_europe = "https://europe.api.riotgames.com"
         self.request_header = {"X-Riot-Token": self.riot_api_key}
+        self.logger = logging.getLogger("RiotApi_Log")
 
     def status_response_exception(self, status_code) -> bool:
         """
@@ -117,10 +114,11 @@ class RiotApi:
             return league_request_json
 
         except StatusCodeError as e:
-            print(f"Error fetching summoner entries: {e}")
+            self.logger.error(f"Error fetching summoner entries: {e}")
             raise e
         except Exception as e:
-            print(f"Unexpected error fetching summoner entries: {e}")
+            self.logger.error(
+                f"Unexpected error fetching summoner entries: {e}")
             raise e
 
     def get_summoner_tier_from_puuid(self, puuid: str):
@@ -147,8 +145,10 @@ class RiotApi:
 
             tier = league_request.json()[0]["tier"]
         except StatusCodeError as e:
+            self.logger.error(e)
             raise e
         except Exception as e:
+            self.logger.error(e)
             raise e
 
         return tier
@@ -171,7 +171,8 @@ class RiotApi:
         url = "".join([self.base_url_euw1, puuId_endpoint])
 
         try:
-            print(f"\nFetching PuuId of Summoner {summonerId[:5]}...")
+            self.logger.info(
+                f"\nFetching PuuId of Summoner {summonerId[:5]}...")
             response = requests.get(url=url, headers=self.request_header)
             status_code = response.status_code
             self.status_response_exception(status_code)
@@ -179,10 +180,10 @@ class RiotApi:
             puuId = response.json()["puuid"]
             return puuId
         except StatusCodeError as e:
-            print(f"Error fetching PuuID: {e}")
+            self.logger.error(f"Error fetching PuuID: {e}")
             raise e
         except Exception as e:
-            print(f"Unexpected error fetching PuuId: {e}")
+            self.logger.error(f"Unexpected error fetching PuuId: {e}")
             raise e
 
     def get_matchIds_from_puuId(self, puuId: str, game_type="ranked", start=0, count=100):
@@ -219,10 +220,10 @@ class RiotApi:
             return match_id
 
         except StatusCodeError as e:
-            print(f"Error fetching matchId: {e}")
+            self.logger.error(f"Error fetching matchId: {e}")
             raise e
         except Exception as e:
-            print(f"Unexpected error fetching matchId: {e}")
+            self.logger.error(f"Unexpected error fetching matchId: {e}")
             raise e
 
     def get_match_data_from_matchId(self, matchId):
@@ -249,10 +250,10 @@ class RiotApi:
 
             return match_data
         except StatusCodeError as e:
-            print("Error fetching match data")
+            self.logger.error("Error fetching match data")
             raise e
         except Exception as e:
-            print("Unexpected error fetching match data")
+            self.logger.error("Unexpected error fetching match data")
             raise e
 
     def get_match_timestamps_from_matcId(self, matchId):
@@ -278,8 +279,8 @@ class RiotApi:
             match_timeline = response.json()
             return match_timeline
         except StatusCodeError as e:
-            print(f"Error fetching match timeline: {e}")
+            self.logger.error(f"Error fetching match timeline: {e}")
             raise e
         except Exception as e:
-            print(f"Unexpected error fetching match timeline: {e}")
+            self.logger.error(f"Unexpected error fetching match timeline: {e}")
             raise e
