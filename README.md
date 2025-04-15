@@ -54,6 +54,9 @@ League-of-Legends-data-pipeline/
 </pre>
 ---
 
+## 🗃️ Database Schema
+- PHOTO TO BE UPLOADED
+
 # 🔁 API Call Workflow
 
 ## Overview
