@@ -5,35 +5,30 @@
     "simple": {
       "format": "%(levelname)s: %(message)s"
     },
-
-    "detailed":{
+    "detailed": {
       "format": "[%(levelname)s|%(module)s|%(lineno)d|%(asctime)s: %(message)s]",
       "datefmt": "%Y-%m-%dT%H:%M:%S%z"
     }
   },
   "handlers": {
-    "stdout":{
-      "class" : "logging.StreamHandler",
+    "stdout": {
+      "class": "logging.StreamHandler",
       "level": "WARNING",
       "formatter": "simple",
       "stream": "ext://sys.stdout"
     },
-
-    "file":{
-      "class":  "logging.handlers.RotatingFileHandler",
+    "file": {
+      "class": "logging.handlers.RotatingFileHandler",
       "level": "DEBUG",
-      "formatter" : "detailed",
+      "formatter": "detailed",
       "filename": "logs/pipeline.log",
-      "maxBytes": 10000000,
-      "backupCount": 3
+      "maxBytes": 1000000,
+      "backupCount": 2
     }
   },
-
-  "loggers":{
-    "root":{
-      "level": "DEBUG",
-      "handlers": ["stdout", "file"]
-    }
+  
+  "root": {
+    "level": "DEBUG",
+    "handlers": ["stdout", "file"]
   }
-
 }
