@@ -129,8 +129,8 @@ To install the RiotAPI Processing Functions locally, follow these steps:
 
 Clone the repository:
 <pre>
-  git clone https://github.com/your-username/your-repo-name.git
-  cd your-repo-name
+  git clone https://github.com/PadTo/League-of-Legends-data-pipeline.git
+  cd League-of-Legends-data-pipeline
 </pre>
 
 Run the following command to install the package locally:
@@ -152,7 +152,7 @@ Make sure you're in the root directory of the project (where setup.py is located
 
 python main.py
 
-On the first run, you will be prompted to input your Riot API key. You can choose to replace it or skip.
+When you run the file you will be prompted to input your Riot API key. You can choose to replace it or skip.
 <pre>
   Do you want to replace the API key (Y for YES | N for NO)?
   If you type Y, you'll be prompted to enter your Riot API key:
