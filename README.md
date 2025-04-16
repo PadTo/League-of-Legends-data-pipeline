@@ -2,6 +2,7 @@
   
   - **Status**: In Development (Almost Completed)
   - **Purpose**: Automated, configurable data pipeline for fetching, filtering, and storing *League of Legends* match data using Riot's official API.
+  - **Additional Functionality to be Added**: Changing regions for data collection, editing rate limiting more easily, a class that will include functions to fetch data from the tables based on wanted parameters, and option to adjust the database structure more easily (including columns, foreign|primary key constraints, etc.)
 
 ---
 
