@@ -1,6 +1,6 @@
 # 🧩 League of Legends Data Pipeline
 
-> **Status**: In Development  
+> **Status**: In Development (Almost Completed)
 > **Purpose**: Automated, configurable data pipeline for fetching, filtering, and storing *League of Legends* match data using Riot's official API.
 
 ---
@@ -78,7 +78,7 @@ This workflow describes fetching and storing League of Legends match data throug
 - **API Call**: `/lol/match/v5/matches/by-puuid/{puuid}/ids`
 - **Action**: 
   - Get the list of recent match IDs for each player
-  - Store data in SQL database
+  - Store data in an SQL database
 
 ### 3. Get Match Data
 - **Fetch**: matchID from the database
@@ -108,7 +108,7 @@ This workflow describes fetching and storing League of Legends match data throug
   - Filter application and database storage
 - Enables batch collection and control over sample size and rank tier
 
-### 🧼 JSON Filtering Module (IN PROGRESS)
+### 🧼 Filtering Module (IN PROGRESS)
 - TBD
 
 ### 🧱 Database Integration (`riot_data_database.db`)
@@ -164,4 +164,6 @@ When you run the file you will be prompted to input your Riot API key. You can c
 Once the key is entered, the pipeline will start and begin processing data.
 
 
-
+NOTE: 
+  - The collection process takes a long time due to rate limiting (rate limits can be adjusted based on your needs and account constraints related to rates)
+  - The data WILL NOT be uploaded due to the database having millions of entries
