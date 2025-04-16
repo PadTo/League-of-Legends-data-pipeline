@@ -27,7 +27,6 @@ This repository contains a modular, rate-limited, and well-logged data pipeline 
 
 League-of-Legends-data-pipeline/
 ├── data/
-│   ├── riot_data_database.db
 ├── log_config/
 │   ├── log_config.json
 ├── logs/
