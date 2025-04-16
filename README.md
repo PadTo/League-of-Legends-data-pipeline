@@ -1,7 +1,7 @@
 # 🧩 League of Legends Data Pipeline
   
-  > **Status**: In Development (Almost Completed)
-  > **Purpose**: Automated, configurable data pipeline for fetching, filtering, and storing *League of Legends* match data using Riot's official API.
+  - **Status**: In Development (Almost Completed)
+  - **Purpose**: Automated, configurable data pipeline for fetching, filtering, and storing *League of Legends* match data using Riot's official API.
 
 ---
 
