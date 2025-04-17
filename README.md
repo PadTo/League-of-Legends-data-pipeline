@@ -5,7 +5,6 @@
 - **Additional Functionality to be Added**:
   - A class that will include functions to fetch data from the tables based on the desired parameters
   - Option to adjust the database structure more easily (including columns, foreign|primary key constraints, etc.)
-  - Data limiting (page count per division and tier)
 
 ---
 
