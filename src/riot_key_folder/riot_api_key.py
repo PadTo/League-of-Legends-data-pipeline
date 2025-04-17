@@ -39,8 +39,8 @@ def get_riot_api_key():
 
 def set_riot_api_key(api_key: str):
     api_key_loc_folder = Path(__file__).parent
-    api_key_loc_file = "api_key_loc.json"
     api_key_loc_template = "api_key_loc_temp.json"
+    api_key_loc_file = "api_key_loc.json"
 
     api_key_locs = [api_key_loc_template, api_key_loc_file]
 

@@ -6,6 +6,7 @@ from logging_util.logging_setup import logging_setup
 
 # TODO: ADD FUNCTIONALITY AND START THE PIPELINE
 if __name__ == "__main__":
+    stages_to_process = (1, 1, 1, 1)
 
     folder_path = Path(__file__).parent
 
@@ -24,6 +25,7 @@ if __name__ == "__main__":
         api_key = input("Input API Key: ")
         set_riot_api_key(api_key=api_key)
 
-    pipeline = RiotPipeline(db_save_location=db_save_location)
+    pipeline = RiotPipeline(
+        db_save_location=db_save_location, stages_to_process=stages_to_process)
 
     pipeline.start_pipeline()

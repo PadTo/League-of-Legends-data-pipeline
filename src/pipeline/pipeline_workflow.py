@@ -17,9 +17,20 @@ class RiotPipeline:
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
+        NOTE: The pipeline is composed of 4 sequential processing stages. \n
+        The `stages_to_process` tuple determines which of these stages should be executed:
+            - stages_to_process[0]: Run Stage 1 (set to 1 to run, 0 to skip)
+            - stages_to_process[1]: Run Stage 2
+            - stages_to_process[2]: Run Stage 3
+            - stages_to_process[3]: Run Stage 4
+
+        Setting `stages_to_process` to (1,1,1,1) runs all 4 stages
+
+
         Parameters:
           db_save_location (str): The location where the database file will be saved.
           logging_config_path (str): The path to the logging configuration file.
+          stages_to_process (tuple): A tuple consisting of 4 values "(x, x, x, x)" either having values of 0 or 1 indicating which stages should be run
           rate_time_limit (tuple, optional): A tuple specifying the rate limit for API calls. 
                                             The first value is the maximum number of calls allowed,
                                             and the second value is the time frame in seconds for the maximum number of calls (default is (100, 120)).
@@ -57,6 +68,12 @@ class RiotPipeline:
         self.sleep_duration_after_API_call = rate_time_limit[1] / \
             rate_time_limit[0]
 
+        for value in self.stages_to_process:
+            if value not in (0, 1) or len(self.stages_to_process) > 4:
+                self.logger.error("Stage to process has been incorrectly set!")
+                raise ValueError(
+                    "Stages to process must be a tuple consisting ONLY of 0 or 1's")
+
     @staticmethod
     def process_decorator(function):
         @functools.wraps(function)
@@ -66,7 +83,7 @@ class RiotPipeline:
 
                 self.logger.info(
                     f"Processing Started For: {function.__name__}")
-                return function(*args, **kwargs)
+                return function(self, *args, **kwargs)
             else:
                 self.logger.info(
                     f"Processing Skipped For: {function.__name__}")
@@ -960,15 +977,24 @@ class RiotPipeline:
         This function calls the necessary methods to gather match ID data, match data, and match timeline data.
         """
 
+        # Step 1: Collect Summoner Entries
         self._collect_summoner_entries_by_tier(
             activate=self.stages_to_process[0])
-        self._collect_match_id_by_puuid(activate=self.stages_to_process[1])
-        self._collect_match_data_by_matchId(activate=self.stages_to_process[2])
+
+        # Step 2: Collect Match ID's
+        self._collect_match_id_by_puuid(
+            activate=self.stages_to_process[1])
+
+        # Step 3: Collect Match Data
+        self._collect_match_data_by_matchId(
+            activate=self.stages_to_process[2])
+
+        # Step 4: Collect Match Timeline
         self._collect_match_timeline_by_matchId(
             activate=self.stages_to_process[3])
     # TODO: MAYBE add an additional option to skip some data collection processes if the pipeline is to be run more than once
 
-    def start_pipeline(self):
+    def start_pipeline(self,):
         """
         Starts the entire data collection pipeline by creating the database, creating the necessary tables,
         and then collecting the data.
