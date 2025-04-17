@@ -206,5 +206,5 @@ Once the key is entered, the pipeline will start and begin processing data.
 
 NOTE:
 
-- The collection process takes a long time due to rate limiting (rate limits can be adjusted based on your needs and account constraints related to rates)
+- The collection process takes a long time (Hours) due to rate limiting (rate limits can be adjusted based on your needs and account constraints related to rates)
 - The data WILL NOT be uploaded due to the database having millions of entries
