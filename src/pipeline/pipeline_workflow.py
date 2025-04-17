@@ -8,6 +8,7 @@ import logging
 import json
 from pathlib import Path
 import time
+import functools
 
 
 class RiotPipeline:
@@ -56,8 +57,10 @@ class RiotPipeline:
         self.sleep_duration_after_API_call = rate_time_limit[1] / \
             rate_time_limit[0]
 
-    def process_decorator(self, function):
-        def wrap(*args, **kwargs):
+    @staticmethod
+    def process_decorator(function):
+        @functools.wraps(function)
+        def wrap(self, *args, **kwargs):
             activate = kwargs.pop('activate', 1)
             if activate == 1:
 
@@ -957,10 +960,12 @@ class RiotPipeline:
         This function calls the necessary methods to gather match ID data, match data, and match timeline data.
         """
 
-        self._collect_summoner_entries_by_tier(activate=stages_to_process[0])
-        self._collect_match_id_by_puuid(activate=stages_to_process[1])
-        self._collect_match_data_by_matchId(activate=stages_to_process[2])
-        self._collect_match_timeline_by_matchId(activate=stages_to_process[3])
+        self._collect_summoner_entries_by_tier(
+            activate=self.stages_to_process[0])
+        self._collect_match_id_by_puuid(activate=self.stages_to_process[1])
+        self._collect_match_data_by_matchId(activate=self.stages_to_process[2])
+        self._collect_match_timeline_by_matchId(
+            activate=self.stages_to_process[3])
     # TODO: MAYBE add an additional option to skip some data collection processes if the pipeline is to be run more than once
 
     def start_pipeline(self):
