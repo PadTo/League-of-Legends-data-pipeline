@@ -17,6 +17,7 @@ if __name__ == "__main__":
         stages_to_process = pipe_config["stages_to_process"]
         rate_limit = pipe_config["rate_limit"]
         region = pipe_config["region"]
+        event_types_to_consider = pipe_config["event_types_to_consider"]
 
     logging_setup(log_config_path)
 
@@ -31,6 +32,7 @@ if __name__ == "__main__":
         db_save_location=db_save_location,
         stages_to_process=stages_to_process,
         rate_time_limit=rate_limit,
-        region=region)
+        region=region,
+        event_types_to_consider=event_types_to_consider)
 
     pipeline.start_pipeline()

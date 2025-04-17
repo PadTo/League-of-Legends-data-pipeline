@@ -17,7 +17,8 @@ class RiotPipeline:
                  stages_to_process=(1, 1, 1, 1),
                  rate_time_limit=(100, 120),
                  region=-1,
-                 eventTypesToConsider=-1):
+                 page_limit=-1,
+                 event_types_to_consider=-1):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
@@ -28,18 +29,18 @@ class RiotPipeline:
             - stages_to_process[2]: Run Stage 3
             - stages_to_process[3]: Run Stage 4
 
-        Setting `stages_to_process` to (1,1,1,1) runs all 4 stages
-
+        Setting `stages_to_process` to (1, 1, 1, 1) runs all 4 stages.
 
         Parameters:
           db_save_location (str): The location where the database file will be saved.
-          logging_config_path (str): The path to the logging configuration file.
-          stages_to_process (tuple): A tuple consisting of 4 values "(x, x, x, x)" either having values of 0 or 1 indicating which stages should be run
-          rate_time_limit (tuple, optional): A tuple specifying the rate limit for API calls. 
-                                            The first value is the maximum number of calls allowed,
-                                            and the second value is the time frame in seconds for the maximum number of calls (default is (100, 120)).
-          eventTypesToConsider (list, optional): A list of event types to be considered for processing. 
-                                                If None, the default event types are ["ELITE_MONSTER_KILL", "CHAMPION_KILL", "BUILDING_KILL"].
+          stages_to_process (tuple): A tuple of four 0s or 1s indicating which pipeline stages to execute.
+          rate_time_limit (tuple, optional): A tuple specifying the API rate limit.
+                                             The first value is the maximum number of calls allowed,
+                                             the second is the time window in seconds (default is (100, 120)).
+          region (int, optional): The region code for data collection. If -1, a default region will be used or determined later.
+          page_limit (int, optional): Limits how many pages of data to request. If -1, no limit is applied.
+          eventTypesToConsider (list or int, optional): A list of event types to include in processing.
+                                                        If set to -1, defaults to ["ELITE_MONSTER_KILL", "CHAMPION_KILL", "BUILDING_KILL"].
 
         Initializes the following attributes:
           - API_key: The API key for Riot API, fetched using the `get_riot_api_key()` method.
@@ -55,6 +56,7 @@ class RiotPipeline:
         self.API_key = get_riot_api_key()
         self.stages_to_process = stages_to_process
         self.db_save_location_path = Path(db_save_location)
+        self.page_limit = page_limit
         self.CallsAPI = RiotApi(self.API_key, region)
         self.ResponseFiltersAPI = API_JsonResponseFilters()
         self.curr_collection_date = str(datetime.datetime.now().date())
@@ -63,11 +65,11 @@ class RiotPipeline:
 
         self.logger = logging.getLogger("RiotApiPipeline_Log")
 
-        if eventTypesToConsider == -1:
+        if event_types_to_consider == -1:
             self.eventTypesToConsider = [
                 "ELITE_MONSTER_KILL", "CHAMPION_KILL", "BUILDING_KILL"]
         else:
-            self.eventTypesToConsider = eventTypesToConsider
+            self.eventTypesToConsider = event_types_to_consider
 
         if rate_time_limit == -1:
             rate_time_limit = (100, 120)
@@ -367,7 +369,6 @@ class RiotPipeline:
             if tier == "CHALLENGER":
                 while not stop:
                     data = list()
-                    # print(f"pages: {pages}")
 
                     try:
                         summoner_entries = self.CallsAPI.get_summoner_entries_by_tier(
@@ -412,6 +413,9 @@ class RiotPipeline:
 
                     except sqlite3.Error as e:
                         self.logger.error(f"Database error: {e}")
+
+                    if self.page_limit != -1 and self.page_limit == pages:
+                        break
 
                     pages += 1
                     time.sleep(self.sleep_duration_after_API_call)
@@ -475,6 +479,8 @@ class RiotPipeline:
                         except sqlite3.Error as e:
                             self.logger.error(f"Databases error: {e}")
 
+                        if self.page_limit != -1 and self.page_limit == pages:
+                            break
                         pages += 1
                         time.sleep(self.sleep_duration_after_API_call)
 
@@ -995,7 +1001,6 @@ class RiotPipeline:
         # Step 4: Collect Match Timeline
         self._collect_match_timeline_by_matchId(
             activate=self.stages_to_process[3])
-    # TODO: MAYBE add an additional option to skip some data collection processes if the pipeline is to be run more than once
 
     def start_pipeline(self,):
         """
