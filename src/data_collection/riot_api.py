@@ -8,7 +8,7 @@ class StatusCodeError(Exception):
         self.message = message
         super().__init__(f"Response Code {status_code}: {message}")
 
-
+# TODO: MAYBE ADDING THE OPTION TO CHOOSE REGIONS
 class RiotApi:
     """
     A class to interact with the Riot Games API.
@@ -115,11 +115,14 @@ class RiotApi:
 
         except StatusCodeError as e:
             self.logger.error(f"Error fetching summoner entries: {e}")
+            
             raise e
         except Exception as e:
             self.logger.error(
                 f"Unexpected error fetching summoner entries: {e}")
             raise e
+        finally:
+            return league_request_json
 
     def get_summoner_tier_from_puuid(self, puuid: str):
         """

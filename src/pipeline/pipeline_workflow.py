@@ -12,7 +12,7 @@ import time
 
 class RiotPipeline:
     # TODO: MAYBE add functionality for different sql table structures
-    def __init__(self, db_save_location: str, rate_time_limit=(100, 120), eventTypesToConsider=None):
+    def __init__(self, db_save_location: str, stages_to_process=(1, 1, 1, 1), rate_time_limit=(100, 120), eventTypesToConsider=None):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
@@ -37,6 +37,7 @@ class RiotPipeline:
           - sleep_duration_after_API_call: A float value representing the time to sleep between API calls based on the rate limit.
         """
         self.API_key = get_riot_api_key()
+        self.stages_to_process = stages_to_process
         self.db_save_location_path = Path(db_save_location)
         self.CallsAPI = RiotApi(self.API_key)
         self.ResponseFiltersAPI = API_JsonResponseFilters()
@@ -54,6 +55,20 @@ class RiotPipeline:
 
         self.sleep_duration_after_API_call = rate_time_limit[1] / \
             rate_time_limit[0]
+
+    def process_decorator(self, function):
+        def wrap(*args, **kwargs):
+            activate = kwargs.pop('activate', 1)
+            if activate == 1:
+
+                self.logger.info(
+                    f"Processing Started For: {function.__name__}")
+                return function(*args, **kwargs)
+            else:
+                self.logger.info(
+                    f"Processing Skipped For: {function.__name__}")
+                return None
+        return wrap
 
     def _create_all_tables(self):
         """
@@ -273,6 +288,7 @@ class RiotPipeline:
                               create_table_query,
                               commit_mesage)
 
+    @process_decorator
     def _collect_summoner_entries_by_tier(self, tiers=None, divisions=None):
         """
         Collects summoner entries for specified tiers and divisions using Riot's API.
@@ -289,9 +305,13 @@ class RiotPipeline:
             - Handles pagination for the CHALLENGER tier.
             - Summoner data is formatted as tuples: (puuid, current_tier, current_division, date).
         """
-        valid_tiers = ["CHALLENGER", "MASTER", "DIAMOND", "EMERALD",
-                       "PLATINUM", "GOLD", "SILVER", "BRONZE",
-                       "IRON"]
+        # valid_tiers = ["CHALLENGER", "MASTER", "DIAMOND", "EMERALD",
+        #                "PLATINUM", "GOLD", "SILVER", "BRONZE",
+        #                "IRON"]
+
+        # TODO: REMOVE THIS
+        valid_tiers = ["EMERALD", "PLATINUM",
+                       "GOLD", "SILVER", "BRONZE", "IRON"]
 
         valid_divisions = ["I", "II", "III", "IV"]
 
@@ -393,6 +413,12 @@ class RiotPipeline:
                             if summoner_entries == None or len(summoner_entries) == 0:
                                 stop = True
                                 break
+
+                            if isinstance(summoner_entries, dict):
+                                if summoner_entries.get("stats", 0).get("status_code", 0) != 200:
+                                    stop = True
+                                    break
+
                         except Exception as e:
                             type_of_entries = type(summoner_entries)
                             self.logger.error(
@@ -429,6 +455,7 @@ class RiotPipeline:
                         pages += 1
                         time.sleep(self.sleep_duration_after_API_call)
 
+    @process_decorator
     def _collect_match_id_by_puuid(self):
         """
         Fetches all puuids from the 'Summoners_Table' and collects corresponding match IDs via the Riot API.
@@ -515,6 +542,7 @@ class RiotPipeline:
 
         return max(tier_freq_dict, key=tier_freq_dict.get)
 
+    @process_decorator
     def _collect_match_data_by_matchId(self):
         """
         Fetches full match data using match IDs stored in the database and prepares data for teams and participants.
@@ -776,6 +804,7 @@ class RiotPipeline:
                 else:
                     return query_data[0]
 
+    @process_decorator
     def _collect_match_timeline_by_matchId(self):
         """
         Collects the timeline data for all matches from the database and stores it in the `Match_Timeline_Table`.
@@ -928,10 +957,10 @@ class RiotPipeline:
         This function calls the necessary methods to gather match ID data, match data, and match timeline data.
         """
 
-        self._collect_summoner_entries_by_tier()
-        self._collect_match_id_by_puuid()
-        self._collect_match_data_by_matchId()
-        self._collect_match_timeline_by_matchId()
+        self._collect_summoner_entries_by_tier(activate=stages_to_process[0])
+        self._collect_match_id_by_puuid(activate=stages_to_process[1])
+        self._collect_match_data_by_matchId(activate=stages_to_process[2])
+        self._collect_match_timeline_by_matchId(activate=stages_to_process[3])
     # TODO: MAYBE add an additional option to skip some data collection processes if the pipeline is to be run more than once
 
     def start_pipeline(self):
@@ -945,9 +974,3 @@ class RiotPipeline:
         self._create_database()
         self._create_all_tables()
         self._collect_data()
-
-
-# ppl = RiotPipeline('D:\LoL Analysis Project\data',
-#                'D:\LoL Analysis Project\log_config\log_config.json')
-
-# ppl.start_pipeline()
