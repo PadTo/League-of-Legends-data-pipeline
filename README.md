@@ -1,14 +1,11 @@
 # 🧩 League of Legends Data Pipeline
-  
-  - **Status**: In Development (Almost Completed)
-  - **Purpose**: Automated, configurable data pipeline for fetching, filtering, and storing *League of Legends* match data using Riot's official API.
-  - **Additional Functionality to be Added**:
-    - Changing regions for data collection
-    - Editing rate limiting more easily
-    - A class that will include functions to fetch data from the tables based on the desired parameters
-    - Option to adjust the database structure more easily (including columns, foreign|primary key constraints, etc.)
-    - Data limiting (page count per division and tier)
-    - Option to skip processing steps
+
+- **Status**: In Development (Almost Completed)
+- **Purpose**: Automated, configurable data pipeline for fetching, filtering, and storing _League of Legends_ match data using Riot's official API.
+- **Additional Functionality to be Added**:
+  - A class that will include functions to fetch data from the tables based on the desired parameters
+  - Option to adjust the database structure more easily (including columns, foreign|primary key constraints, etc.)
+  - Data limiting (page count per division and tier)
 
 ---
 
@@ -58,14 +55,17 @@ League-of-Legends-data-pipeline/
 ├── README.md
 ├── setup.py
 </pre>
+
 ---
 
 ## 🗃️ Database Schema
+
 - PHOTO TO BE UPLOADED
 
 # 🔁 API Call Workflow
 
 ## Overview
+
 This workflow describes fetching and storing League of Legends match data through Riot Games' API.
 
 ![API Call Workflow](photos/API_Call_Workflow.png)
@@ -73,41 +73,47 @@ This workflow describes fetching and storing League of Legends match data throug
 ## Workflow Steps
 
 ### 1. Input Queue, Tier, Division
+
 - **Input**: Competitive tier (e.g., Challenger, Iron), queue (e.g., ranked, normal), and division (e.g., I, II)
 - **API Call**: `/lol/league/v4/entries/{queue}/{tier}/{division}`
-- **Action**: 
+- **Action**:
   - Retrieve summoner entries for each tier and division (ranked)
   - Store data in SQL database
 
 ### 2. Get Match IDs from puuIDs
+
 - **Fetch**: puuID from the database
 - **API Call**: `/lol/match/v5/matches/by-puuid/{puuid}/ids`
-- **Action**: 
+- **Action**:
   - Get the list of recent match IDs for each player
   - Store data in an SQL database
 
 ### 3. Get Match Data
+
 - **Fetch**: matchID from the database
 - **API Call**: `/lol/match/v5/matches/{matchId}`
-- **Extract**: 
+- **Extract**:
   - Participant-level data
   - Team-level data
 
 ### 4. Get Match Timeline
+
 - **Fetch**: matchID from the database
 - **API Call**: `/lol/match/v5/matches/{matchId}/timeline`
-- **Extract**: 
+- **Extract**:
   - Events data
   - Frame-by-frame gameplay data
 
 ## ⚙️ Features
 
 ### 🔗 Riot API Interface (`riot_api.py`)
+
 - Interacts with Riot’s Match-V5, Summoner-V4, and Spectator-V4 endpoints
 - Fetches player PUUIDs, match histories, and timelines
 - Implements robust error handling and rate limit compliance
 
 ### 🧠 Pipeline Controller (`pipeline_workflow.py`)
+
 - End-to-end orchestration of:
   - Player and match data retrieval
   - Timeline extraction
@@ -115,9 +121,11 @@ This workflow describes fetching and storing League of Legends match data throug
 - Enables batch collection and control over sample size and rank tier
 
 ### 🧼 Filtering Module (IN PROGRESS)
+
 - TBD
 
 ### 🧱 Database Integration (`riot_data_database.db`)
+
 - Lightweight SQLite database setup
 - Stores structured data across:
   - Match metadata
@@ -125,6 +133,7 @@ This workflow describes fetching and storing League of Legends match data throug
   - Event sequences and timelines
 
 ### 🪵 Logging System (`logs/riot_data.log`)
+
 - Tracks request success/failure and error messages
 - Useful for debugging long pipeline runs
 - Controlled via `configs/log_config.json`
@@ -134,15 +143,18 @@ This workflow describes fetching and storing League of Legends match data throug
 ## 🧪 How to Run
 
 ### Installation
+
 To install the RiotAPI Processing Functions locally, follow these steps:
 
 Clone the repository:
+
 <pre>
   git clone https://github.com/PadTo/League-of-Legends-data-pipeline.git
   cd League-of-Legends-data-pipeline
 </pre>
 
 Run the following command to install the package locally:
+
 <pre>
   pip install .
 </pre>
@@ -150,6 +162,7 @@ Run the following command to install the package locally:
 Make sure you're in the root directory of the project (where setup.py is located) before running the install command.
 
 ### Edit save_locations.json:
+
 <pre>
   {
     "database_save_location": "YOUR/DESIRED/DATA/PATH",
@@ -162,6 +175,7 @@ Make sure you're in the root directory of the project (where setup.py is located
 python main.py
 
 When you run the file you will be prompted to input your Riot API key. You can choose to replace it or skip.
+
 <pre>
   Do you want to replace the API key (Y for YES | N for NO)?
   If you type Y, you'll be prompted to enter your Riot API key:
@@ -169,7 +183,7 @@ When you run the file you will be prompted to input your Riot API key. You can c
 
 Once the key is entered, the pipeline will start and begin processing data.
 
+NOTE:
 
-NOTE: 
-  - The collection process takes a long time due to rate limiting (rate limits can be adjusted based on your needs and account constraints related to rates)
-  - The data WILL NOT be uploaded due to the database having millions of entries
+- The collection process takes a long time due to rate limiting (rate limits can be adjusted based on your needs and account constraints related to rates)
+- The data WILL NOT be uploaded due to the database having millions of entries
