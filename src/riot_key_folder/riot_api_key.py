@@ -55,3 +55,4 @@ def set_riot_api_key(api_key: str):
 
             # Check format after writing
             api_format_checker({'riot_api_key': api_key})
+            break
