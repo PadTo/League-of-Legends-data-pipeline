@@ -1,0 +1,7 @@
+{
+  "database_save_location": "D:\\LoL Analysis Project\\data",
+  "logging_configuration_filepath": "D:\\LoL Analysis Project\\log_config\\log_config.json",
+  "stages_to_process": [1,1,1,1], 
+  "rate_limit": -1,
+  "region": -1
+}

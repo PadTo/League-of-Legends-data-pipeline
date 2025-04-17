@@ -4,17 +4,19 @@ from pathlib import Path
 import json
 from logging_util.logging_setup import logging_setup
 
-# TODO: ADD FUNCTIONALITY AND START THE PIPELINE
+
 if __name__ == "__main__":
-    stages_to_process = (1, 1, 1, 1)
 
     folder_path = Path(__file__).parent
 
-    with open(folder_path / "save_locations.json") as f:
-        locations = json.load(f)
+    with open(folder_path / "pipeline_configuration.json") as f:
+        pipe_config = json.load(f)
 
-        db_save_location = Path(locations["database_save_location"])
-        log_config_path = Path(locations["logging_configuration_filepath"])
+        db_save_location = Path(pipe_config["database_save_location"])
+        log_config_path = Path(pipe_config["logging_configuration_filepath"])
+        stages_to_process = pipe_config["stages_to_process"]
+        rate_limit = pipe_config["rate_limit"]
+        region = pipe_config["region"]
 
     logging_setup(log_config_path)
 
@@ -26,6 +28,9 @@ if __name__ == "__main__":
         set_riot_api_key(api_key=api_key)
 
     pipeline = RiotPipeline(
-        db_save_location=db_save_location, stages_to_process=stages_to_process)
+        db_save_location=db_save_location,
+        stages_to_process=stages_to_process,
+        rate_time_limit=rate_limit,
+        region=region)
 
     pipeline.start_pipeline()

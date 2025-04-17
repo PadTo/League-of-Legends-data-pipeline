@@ -13,7 +13,11 @@ import functools
 
 class RiotPipeline:
     # TODO: MAYBE add functionality for different sql table structures
-    def __init__(self, db_save_location: str, stages_to_process=(1, 1, 1, 1), rate_time_limit=(100, 120), eventTypesToConsider=None):
+    def __init__(self, db_save_location: str,
+                 stages_to_process=(1, 1, 1, 1),
+                 rate_time_limit=(100, 120),
+                 region=-1,
+                 eventTypesToConsider=-1):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
@@ -51,7 +55,7 @@ class RiotPipeline:
         self.API_key = get_riot_api_key()
         self.stages_to_process = stages_to_process
         self.db_save_location_path = Path(db_save_location)
-        self.CallsAPI = RiotApi(self.API_key)
+        self.CallsAPI = RiotApi(self.API_key, region)
         self.ResponseFiltersAPI = API_JsonResponseFilters()
         self.curr_collection_date = str(datetime.datetime.now().date())
         self.database_location_absolute_path = self.db_save_location_path / \
@@ -59,11 +63,14 @@ class RiotPipeline:
 
         self.logger = logging.getLogger("RiotApiPipeline_Log")
 
-        if eventTypesToConsider == None:
+        if eventTypesToConsider == -1:
             self.eventTypesToConsider = [
                 "ELITE_MONSTER_KILL", "CHAMPION_KILL", "BUILDING_KILL"]
         else:
             self.eventTypesToConsider = eventTypesToConsider
+
+        if rate_time_limit == -1:
+            rate_time_limit = (100, 120)
 
         self.sleep_duration_after_API_call = rate_time_limit[1] / \
             rate_time_limit[0]
@@ -325,13 +332,9 @@ class RiotPipeline:
             - Handles pagination for the CHALLENGER tier.
             - Summoner data is formatted as tuples: (puuid, current_tier, current_division, date).
         """
-        # valid_tiers = ["CHALLENGER", "MASTER", "DIAMOND", "EMERALD",
-        #                "PLATINUM", "GOLD", "SILVER", "BRONZE",
-        #                "IRON"]
-
-        # TODO: REMOVE THIS
-        valid_tiers = ["EMERALD", "PLATINUM",
-                       "GOLD", "SILVER", "BRONZE", "IRON"]
+        valid_tiers = ["CHALLENGER", "MASTER", "DIAMOND", "EMERALD",
+                       "PLATINUM", "GOLD", "SILVER", "BRONZE",
+                       "IRON"]
 
         valid_divisions = ["I", "II", "III", "IV"]
 
@@ -440,7 +443,7 @@ class RiotPipeline:
                                     break
 
                         except Exception as e:
-                            type_of_entries = type(summoner_entries)
+
                             self.logger.error(
                                 f"Unexpected error occurred: {e}")
                             self.logger.info(

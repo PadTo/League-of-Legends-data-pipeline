@@ -9,6 +9,8 @@ class StatusCodeError(Exception):
         super().__init__(f"Response Code {status_code}: {message}")
 
 # TODO: MAYBE ADDING THE OPTION TO CHOOSE REGIONS
+
+
 class RiotApi:
     """
     A class to interact with the Riot Games API.
@@ -42,9 +44,14 @@ class RiotApi:
             Fetches match IDs for a given PuuID, based on the game type and number of matches.
     """
 
-    def __init__(self, riot_api_key):
+    def __init__(self, riot_api_key, base_url_europe_region=-1):
         self.riot_api_key = riot_api_key
-        self.base_url_euw1 = "https://euw1.api.riotgames.com"
+
+        if base_url_europe_region == -1:
+            self.base_url_euw1 = "https://euw1.api.riotgames.com"
+        else:
+            self.base_url_euw1 = base_url_europe_region
+
         self.base_url_europe = "https://europe.api.riotgames.com"
         self.request_header = {"X-Riot-Token": self.riot_api_key}
         self.logger = logging.getLogger("RiotApi_Log")
@@ -115,7 +122,7 @@ class RiotApi:
 
         except StatusCodeError as e:
             self.logger.error(f"Error fetching summoner entries: {e}")
-            
+
             raise e
         except Exception as e:
             self.logger.error(
