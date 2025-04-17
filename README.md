@@ -51,6 +51,7 @@ League-of-Legends-data-pipeline/
 ├── photos/
 │   ├── API_Call_Workflow.png
 ├── documentation.txt
+├── pipeline_configuration
 ├── main.py
 ├── README.md
 ├── setup.py
