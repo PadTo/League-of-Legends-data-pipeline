@@ -163,9 +163,11 @@ Run the following command to install the package locally:
 Make sure you're in the root directory of the project (where setup.py is located) before running the install command.
 
 ### ⚙️ Configure the Pipeline
+
 Edit the pipeline_configuration.json file located in the project root. This file contains all runtime settings required by the pipeline:
 
 EXAMPLE:
+
 <pre>
 {
   "database_save_location": "YOUR/DESIRED/DATA/PATH",
@@ -177,15 +179,17 @@ EXAMPLE:
   "eventTypesToConsider": ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"]
 }
 </pre>
+
 ⚠️ Important Notes:
-  - `region` must be set to only a European region. Other regions are currently unsupported and will break the pipeline.
-  - `rate_time_limit` must be a tuple inside a list or tuple, e.g., [100, 120]. This defines 100 calls per 120 seconds.
-  - `page_limit` controls how many pages of match data to request per tier and division. Set to -1 to disable the limit.
-  - `stages_to_process` enables/disables pipeline stages with 1s and 0s (e.g., [1, 1, 0, 0] to run only the first two).
-    - stage 2 depends on stage 1
-    - stage 3 and 4 depend on stage 2
-    - if stage 1 has not been run, stage 2 cannot occur
-    - if stage 2 has not been run, stage 3 and stage 4 cannot occur
+
+- `region` must be set to only a European region. Other regions are currently unsupported and will break the pipeline.
+- `rate_time_limit` must be a tuple inside a list or tuple, e.g., [100, 120]. This defines 100 calls per 120 seconds.
+- `page_limit` controls how many pages of match data to request per tier and division in stage 1. Set to -1 to disable the limit.
+- `stages_to_process` enables/disables pipeline stages with 1s and 0s (e.g., [1, 1, 0, 0] to run only the first two).
+  - stage 2 depends on stage 1
+  - stage 3 and 4 depend on stage 2
+  - if stage 1 has not been run, stage 2 cannot occur
+  - if stage 2 has not been run, stage 3 and stage 4 cannot occur
 
 ### Run the Main Script
 
