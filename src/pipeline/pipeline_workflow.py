@@ -1002,7 +1002,7 @@ class RiotPipeline:
         self._collect_match_timeline_by_matchId(
             activate=self.stages_to_process[3])
 
-    def start_pipeline(self,):
+    def start_pipeline(self):
         """
         Starts the entire data collection pipeline by creating the database, creating the necessary tables,
         and then collecting the data.

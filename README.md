@@ -61,6 +61,7 @@ League-of-Legends-data-pipeline/
 ## 🗃️ Database Schema
 
 - PHOTO TO BE UPLOADED
+  ![Database Tables Relationships](photos/Database_Tables_Relationships.png)
 
 # 🔁 API Call Workflow
 
