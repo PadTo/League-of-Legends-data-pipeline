@@ -29,6 +29,7 @@ League-of-Legends-data-pipeline/
 │   ├── log_config.json
 ├── logs/
 ├── notebooks/
+│   ├── test.ipynb
 ├── src/
 │   ├── __pycache__/
 │   ├── data_collection/
