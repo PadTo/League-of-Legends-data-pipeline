@@ -1,6 +1,6 @@
 # 🧩 League of Legends Data Pipeline
 
-- **Status**: Completeed
+- **Status**: Completed
 - **Purpose**: Automated, configurable data pipeline for fetching, filtering, and storing _League of Legends_ match data using Riot's official API.
 - **Additional Advanced Features to be Added in the Future**:
   - A class that will include functions to fetch data from the tables based on the desired parameters
