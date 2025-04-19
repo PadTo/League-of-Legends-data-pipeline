@@ -846,7 +846,7 @@ class RiotPipeline:
         """
         Collects the timeline data for all matches from the database and stores it in the `Match_Timeline_Table`.
 
-        This function processes various events in the match timeline (e.g., champion kills, monster kills, 
+        This function processes various events in the match timeline (e.g., champion kills, monster kills,
         building kills, participant frames) and inserts the event data into the database.
 
         It handles the following types of events:
@@ -968,24 +968,33 @@ class RiotPipeline:
             if iter_ == 0:
                 break
 
-        with self._get_connection(self.database_location_absolute_path) as connection:
-            cursor = connection.cursor()
-            insert_query = '''
-                INSERT OR IGNORE INTO Match_Timeline_Table (
-                    matchId,
-                    puuId,
-                    teamId,
-                    inGameId,
-                    teamPosition,
-                    x,
-                    y,
-                    timestamp,
-                    event,
-                    type
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-                '''
-            cursor.executemany(insert_query, data_events)
-            connection.commit()
+            if iter_ % self.batch_insert_limit:
+                try:
+                    with self._get_connection(self.database_location_absolute_path) as connection:
+                        cursor = connection.cursor()
+                        insert_query = '''
+                          INSERT OR IGNORE INTO Match_Timeline_Table (
+                              matchId,
+                              puuId,
+                              teamId,
+                              inGameId,
+                              teamPosition,
+                              x,
+                              y,
+                              timestamp,
+                              event,
+                              type
+                          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                          '''
+                        cursor.executemany(insert_query, data_events)
+                        connection.commit()
+                        self.logger.info(
+                            f"Batch Inserted {iter_} events into Match_Timeline_Table")
+
+                except sqlite3.IntegrityError as e:
+                    self.logger.error(f"Foreign key constraint failed: {e}")
+                except sqlite3.Error as e:
+                    self.logger.error(f"Database error: {e}")
 
     def _collect_data(self):
         """
