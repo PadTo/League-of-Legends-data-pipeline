@@ -18,7 +18,8 @@ class RiotPipeline:
                  rate_time_limit=(100, 120),
                  region=-1,
                  page_limit=-1,
-                 event_types_to_consider=-1):
+                 event_types_to_consider=-1,
+                 batch_insert_limit=1000):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
@@ -57,6 +58,7 @@ class RiotPipeline:
         self.stages_to_process = stages_to_process
         self.db_save_location_path = Path(db_save_location)
         self.page_limit = page_limit
+        self.batch_insert_limit = batch_insert_limit
         self.CallsAPI = RiotApi(self.API_key, region)
         self.ResponseFiltersAPI = API_JsonResponseFilters()
         self.curr_collection_date = str(datetime.datetime.now().date())
@@ -509,7 +511,7 @@ class RiotPipeline:
             self.logger.error(f"Database error: {e}")
 
         data = list()
-        for puuid in puuid_list:
+        for count, puuid in enumerate(puuid_list):
             time.sleep(self.sleep_duration_after_API_call)
             puuid_str = puuid[0]
             try:
@@ -521,25 +523,25 @@ class RiotPipeline:
 
             for match_id in temp_match_ids:
                 data.append((match_id, puuid_str))
+            if count % self.batch_insert_limit == 0:
+                try:
+                    with self._get_connection(self.database_location_absolute_path) as connection:
+                        cursor = connection.cursor()
+                        insert_query = '''
+                            INSERT INTO Match_ID_Table (matchId, puuid)
+                            VALUES
+                            (?, ?)
+                            '''
+                        cursor.executemany(insert_query, data)
+                        connection.commit()
 
-        try:
-            with self._get_connection(self.database_location_absolute_path) as connection:
-                cursor = connection.cursor()
-                insert_query = '''
-                    INSERT INTO Match_ID_Table (matchId, puuid)
-                    VALUES
-                    (?, ?)
-                    '''
-                cursor.executemany(insert_query, data)
-                connection.commit()
+                        self.logger.info(f"Batch Inserted {count}")
 
-                self.logger.info("Successfully inserted matchID's")
+                except sqlite3.IntegrityError as e:
+                    self.logger.error(f"Foreign key constraint failed: {e}")
 
-        except sqlite3.IntegrityError as e:
-            self.logger.error(f"Foreign key constraint failed: {e}")
-
-        except sqlite3.Error as e:
-            self.logger.error(f"Database error: {e}")
+                except sqlite3.Error as e:
+                    self.logger.error(f"Database error: {e}")
 
     def _get_majority_tier(self, player_puuids: list):
         """
