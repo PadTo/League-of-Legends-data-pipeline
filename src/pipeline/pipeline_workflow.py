@@ -15,11 +15,11 @@ class RiotPipeline:
     # TODO: MAYBE add functionality for different sql table structures
     def __init__(self, db_save_location: str,
                  stages_to_process=(1, 1, 1, 1),
-                 rate_time_limit=(100, 120),
+                 rate_time_limit=-1,
                  region=-1,
                  page_limit=-1,
                  event_types_to_consider=-1,
-                 batch_insert_limit=1000):
+                 batch_insert_limit=-1):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
@@ -75,6 +75,9 @@ class RiotPipeline:
 
         if rate_time_limit == -1:
             rate_time_limit = (100, 120)
+
+        if batch_insert_limit == -1:
+            batch_insert_limit = 1000
 
         self.sleep_duration_after_API_call = rate_time_limit[1] / \
             rate_time_limit[0]
