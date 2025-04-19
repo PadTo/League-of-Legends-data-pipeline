@@ -179,7 +179,7 @@ EXAMPLE:
   "region": "https://eun1.api.riotgames.com",
   "page_limit": 5,
   "eventTypesToConsider": ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"],
-  "batch_insert_limit": 1000 (Behaves differently based on the stages, but a general parameter to avoid inserting millions of entries in a single query avoiding excessive use of RAM)
+  "batch_insert_limit": 1000
 }
 </pre>
 
