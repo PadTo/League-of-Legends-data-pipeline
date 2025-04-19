@@ -186,49 +186,49 @@ EXAMPLE:
 ⚠️ CONFIGURATION EXPLANATION:
 
 "database_save_location":
-    - Path where processed data will be saved (e.g., a .db or .sqlite file).
-    - Example: "./data/match_data.db"
-    - Make sure this path exists or the program has permissions to create it.
+  - Path where processed data will be saved (e.g., a .db or .sqlite file).
+  - Example: "./data/match_data.db"
+  - Make sure this path exists or the program has permissions to create it.
 
 "logging_configuration_filepath":
-    - Path to the logging config file (usually a JSON file).
-    - Controls logging behavior: what to log, where to log it, log level, etc.
-    - Example: "./config/log_config.json"
+  - Path to the logging config file (usually a JSON file).
+  - Controls logging behavior: what to log, where to log it, log level, etc.
+  - Example: "./config/log_config.json"
 
 "stages_to_process":
-    - A list of 4 binary values [1, 1, 1, 1] to toggle pipeline stages.
-        - 1 = run the stage
-        - 0 = skip the stage
-    - Example: [1, 1, 0, 0] runs only stages 1 and 2.
-    - Dependency rules:
-        - Stage 2 depends on stage 1
-        - Stages 3 and 4 depend on stage 2
+  - A list of 4 binary values [1, 1, 1, 1] to toggle pipeline stages.
+      - 1 = run the stage
+      - 0 = skip the stage
+  - Example: [1, 1, 0, 0] runs only stages 1 and 2.
+  - Dependency rules:
+      - Stage 2 depends on stage 1
+      - Stages 3 and 4 depend on stage 2
 
 "rate_time_limit":
-    - API rate limit in format [calls, seconds].
-    - Example: [100, 120] = 100 requests allowed per 120 seconds.
-    - Prevents hitting Riot API limits and being throttled or blocked.
+  - API rate limit in format [calls, seconds].
+  - Example: [100, 120] = 100 requests allowed per 120 seconds.
+  - Prevents hitting Riot API limits and being throttled or blocked.
 
 "region":
-    - Riot API region URL to query from.
-    - Only European regions are allowed (e.g., "https://eun1.api.riotgames.com").
-    - Using unsupported regions will break the pipeline.
+  - Riot API region URL to query from.
+  - Only European regions are allowed (e.g., "https://eun1.api.riotgames.com").
+  - Using unsupported regions will break the pipeline.
 
 "page_limit":
-    - Controls how many pages of match data are fetched per tier/division in stage 1.
-    - Set to -1 to disable the limit (fetch all available pages).
-    - Example: 5 = fetch up to 5 pages per bracket.
+  - Controls how many pages of match data are fetched per tier/division in stage 1.
+  - Set to -1 to disable the limit (fetch all available pages).
+  - Example: 5 = fetch up to 5 pages per bracket.
 
 "eventTypesToConsider":
-    - Filters which event types to extract from match timelines.
-    - Example: ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"]
-    - Customize to include only relevant game events.
+  - Filters which event types to extract from match timelines.
+  - Example: ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"]
+  - Customize to include only relevant game events.
 
 "batch_insert_limit":
-    - Maximum number of entries to insert into the database at once.
-    - Helps avoid memory overload and improves performance.
-    - Default suggestion: 1000 (may vary by stage or system specs)
-    - Batching prevents issues with RAM usage and large single-query loads.
+  - Maximum number of entries to insert into the database at once.
+  - Helps avoid memory overload and improves performance.
+  - Default suggestion: 1000 (may vary by stage or system specs)
+  - Batching prevents issues with RAM usage and large single-query loads.
 
 
 ### Run the Main Script
