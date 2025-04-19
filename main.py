@@ -18,6 +18,7 @@ if __name__ == "__main__":
         rate_limit = pipe_config["rate_limit"]
         region = pipe_config["region"]
         event_types_to_consider = pipe_config["event_types_to_consider"]
+        batch_insert_limit = pipe_config["batch_insert_limit"]
 
     logging_setup(log_config_path)
 
