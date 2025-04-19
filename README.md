@@ -6,6 +6,7 @@
   - A class that will include functions to fetch data from the tables based on the desired parameters
   - Option to adjust the database structure more easily (including columns, foreign|primary key constraints, etc.)
   - Data gathering limits on stages 2, 3 and 4
+  - Adding a column for the match end type for match id's table
 
 ---
 
@@ -173,24 +174,62 @@ EXAMPLE:
 {
   "database_save_location": "YOUR/DESIRED/DATA/PATH",
   "logging_configuration_filepath": "YOUR/DESIRED/LOG_CONFIG_PATH/log_config.json",
-  "region": "https://eun1.api.riotgames.com",
-  "rate_time_limit": [100, 120],
-  "page_limit": 5,
   "stages_to_process": [1, 1, 1, 1],
-  "eventTypesToConsider": ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"]
+  "rate_time_limit": [100, 120],
+  "region": "https://eun1.api.riotgames.com",
+  "page_limit": 5,
+  "eventTypesToConsider": ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"],
+  "batch_insert_limit": 1000 (Behaves differently based on the stages, but a general parameter to avoid inserting millions of entries in a single query avoiding excessive use of RAM)
 }
 </pre>
 
-⚠️ Important Notes:
+⚠️ CONFIGURATION EXPLANATION:
 
-- `region` must be set to only a European region. Other regions are currently unsupported and will break the pipeline.
-- `rate_time_limit` must be a list, e.g., [100, 120]. This defines 100 calls per 120 seconds.
-- `page_limit` controls how many pages of match data to request per tier and division in stage 1. Set to -1 to disable the limit.
-- `stages_to_process` enables/disables pipeline stages with 1s and 0s (e.g., [1, 1, 0, 0] to run only the first two).
-  - stage 2 depends on stage 1
-  - stage 3 and 4 depend on stage 2
-  - if stage 1 has not been run, stage 2 cannot occur
-  - if stage 2 has not been run, stage 3 and stage 4 cannot occur
+"database_save_location":
+    - Path where processed data will be saved (e.g., a .db or .sqlite file).
+    - Example: "./data/match_data.db"
+    - Make sure this path exists or the program has permissions to create it.
+
+"logging_configuration_filepath":
+    - Path to the logging config file (usually a JSON file).
+    - Controls logging behavior: what to log, where to log it, log level, etc.
+    - Example: "./config/log_config.json"
+
+"stages_to_process":
+    - A list of 4 binary values [1, 1, 1, 1] to toggle pipeline stages.
+        - 1 = run the stage
+        - 0 = skip the stage
+    - Example: [1, 1, 0, 0] runs only stages 1 and 2.
+    - Dependency rules:
+        - Stage 2 depends on stage 1
+        - Stages 3 and 4 depend on stage 2
+
+"rate_time_limit":
+    - API rate limit in format [calls, seconds].
+    - Example: [100, 120] = 100 requests allowed per 120 seconds.
+    - Prevents hitting Riot API limits and being throttled or blocked.
+
+"region":
+    - Riot API region URL to query from.
+    - Only European regions are allowed (e.g., "https://eun1.api.riotgames.com").
+    - Using unsupported regions will break the pipeline.
+
+"page_limit":
+    - Controls how many pages of match data are fetched per tier/division in stage 1.
+    - Set to -1 to disable the limit (fetch all available pages).
+    - Example: 5 = fetch up to 5 pages per bracket.
+
+"eventTypesToConsider":
+    - Filters which event types to extract from match timelines.
+    - Example: ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"]
+    - Customize to include only relevant game events.
+
+"batch_insert_limit":
+    - Maximum number of entries to insert into the database at once.
+    - Helps avoid memory overload and improves performance.
+    - Default suggestion: 1000 (may vary by stage or system specs)
+    - Batching prevents issues with RAM usage and large single-query loads.
+
 
 ### Run the Main Script
 
