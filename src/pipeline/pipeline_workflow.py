@@ -726,85 +726,88 @@ class RiotPipeline:
                 if i == 1:
                     break
 
+                if i % self.batch_insert_limit == 0:
+                    try:
+                        with self._get_connection(self.database_location_absolute_path) as connection:
+                            cursor = connection.cursor()
+                            insert_query = '''
+                              INSERT OR IGNORE INTO Match_Data_Teams_Table (
+                                  matchId,
+                                  killedAtakhan,
+                                  baronKills,
+                                  championKills,
+                                  dragonKills,
+                                  dragonSoul,
+                                  hordeKills,
+                                  riftHeraldKills,
+                                  towerKills,
+                                  teamId,
+                                  teamWin,
+                                  gameTier,
+                                  endOfGameResult
+                              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                              '''
+
+                            cursor.executemany(insert_query, data_teams)
+                            connection.commit()
+
+                            insert_query2 = '''INSERT OR IGNORE INTO Match_Data_Participants_Table (
+                                  puuId,
+                                  matchId,
+                                  teamId,
+                                  gameTier,
+
+                                  championKills,
+                                  assists,
+                                  deaths,
+                                  KDA,
+
+                                  goldEarned,
+                                  goldPerMinute,
+                                  totalMinionsKilled,
+                                  maxLevelLeadLaneOpponent,
+                                  laneMinionsFirst10Minutes,
+
+                                  damagePerMinute,
+                                  killParticipation,
+
+                                  controlWardsPlaced,
+                                  wardsPlaced,
+                                  wardsKilled,
+                                  visionScore,
+                                  visionWardsBoughtInGame,
+
+                                  assistMePings,
+                                  allInPings,
+                                  enemyMissingPings,
+
+                                  needVisionPings,
+                                  onMyWayPings,
+                                  getBackPings,
+                                  pushPings,
+                                  holdPings,
+
+                                  championName,
+                                  individualPosition,
+                                  teamPosition,
+
+                                  hadOpenNexus,
+                                  win,
+                                  endOfGameResult
+                              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?, ?);
+                              '''
+
+                            cursor.executemany(
+                                insert_query2, data_participants)
+                            connection.commit()
+
+                            logging.info("Insert of teams data successful")
+
+                    except sqlite3.Error as e:
+                        logging.error(f"Database error:{e}")
+
         except Exception as e:
             logging.error(f"{e}")
-
-        try:
-            with self._get_connection(self.database_location_absolute_path) as connection:
-                cursor = connection.cursor()
-                insert_query = '''
-                  INSERT OR IGNORE INTO Match_Data_Teams_Table (
-                      matchId,
-                      killedAtakhan,
-                      baronKills,
-                      championKills,
-                      dragonKills,
-                      dragonSoul,
-                      hordeKills,
-                      riftHeraldKills,
-                      towerKills,
-                      teamId,
-                      teamWin,
-                      gameTier,
-                      endOfGameResult
-                  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-                  '''
-
-                cursor.executemany(insert_query, data_teams)
-                connection.commit()
-
-                insert_query2 = '''INSERT OR IGNORE INTO Match_Data_Participants_Table (
-                      puuId,
-                      matchId,
-                      teamId,
-                      gameTier,
-
-                      championKills,
-                      assists,
-                      deaths,
-                      KDA,
-
-                      goldEarned,
-                      goldPerMinute,
-                      totalMinionsKilled,
-                      maxLevelLeadLaneOpponent,
-                      laneMinionsFirst10Minutes,
-
-                      damagePerMinute,
-                      killParticipation,
-
-                      controlWardsPlaced,
-                      wardsPlaced,
-                      wardsKilled,
-                      visionScore,
-                      visionWardsBoughtInGame,
-
-                      assistMePings,
-                      allInPings,
-                      enemyMissingPings,
-
-                      needVisionPings,
-                      onMyWayPings,
-                      getBackPings,
-                      pushPings,
-                      holdPings,
-
-                      championName,
-                      individualPosition,
-                      teamPosition,
-
-                      hadOpenNexus,
-                      win,
-                      endOfGameResult
-                  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?, ?);
-                  '''
-
-                cursor.executemany(insert_query2, data_participants)
-                connection.commit()
-
-                logging.info("Insert of teams data successful")
-        except sqlite3.Error as e:
-            logging.error(f"Database error:{e}")
 
     def _get_teamId_teamPos(self, puuid, match_id):
         """
