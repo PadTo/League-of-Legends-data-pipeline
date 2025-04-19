@@ -5,7 +5,6 @@
 - **Additional Advanced Features to be Added in the Future**:
   - A class that will include functions to fetch data from the tables based on the desired parameters
   - Option to adjust the database structure more easily (including columns, foreign|primary key constraints, etc.)
-  - Batch data insert into tables to avoid inserting millions of entries in a single query
   - Data gathering limits on stages 2, 3 and 4
 
 ---
