@@ -25,10 +25,10 @@ class RiotPipeline:
 
         NOTE: The pipeline is composed of 4 sequential processing stages. \n
         The `stages_to_process` tuple determines which of these stages should be executed:
-            - stages_to_process[0]: Run Stage 1 (set to 1 to run, 0 to skip)
-            - stages_to_process[1]: Run Stage 2
-            - stages_to_process[2]: Run Stage 3
-            - stages_to_process[3]: Run Stage 4
+            - stages_to_process[0]: Run Stage 1 (set to 1 to run, 0 to skip)      | Collects summoner entries by tier
+            - stages_to_process[1]: Run Stage 2 (set to 1 to run, 0 to skip)      | Collects match IDs by puuid
+            - stages_to_process[2]: Run Stage 3 (set to 1 to run, 0 to skip)      | Collects match data by match ID
+            - stages_to_process[3]: Run Stage 4 (set to 1 to run, 0 to skip)      | Collects match timeline data by match ID
 
         Setting `stages_to_process` to (1, 1, 1, 1) runs all 4 stages.
 
