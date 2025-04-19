@@ -227,7 +227,7 @@ EXAMPLE:
 "batch_insert_limit":
   - Maximum number of entries to insert into the database at once.
   - Helps avoid memory overload and improves performance.
-  - Default suggestion: 1000 (may vary by stage or system specs)
+  - Default: 1000 (specific behaviour varies based on processing stage, but a general parameter to control the flow of data)
   - Batching prevents issues with RAM usage and large single-query loads.
 
 
@@ -235,7 +235,7 @@ EXAMPLE:
 
 python main.py
 
-When you run the file you will be prompted to input your Riot API key. You can choose to replace it or skip.
+When you run the file, you will be prompted to input your Riot API key. You can choose to replace it or skip it.
 
 <pre>
   Do you want to replace the API key (Y for YES | N for NO)?
