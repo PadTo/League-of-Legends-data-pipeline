@@ -58,7 +58,6 @@ class RiotPipeline:
         self.stages_to_process = stages_to_process
         self.db_save_location_path = Path(db_save_location)
         self.page_limit = page_limit
-        self.batch_insert_limit = batch_insert_limit
         self.CallsAPI = RiotApi(self.API_key, region)
         self.ResponseFiltersAPI = API_JsonResponseFilters()
         self.curr_collection_date = str(datetime.datetime.now().date())
@@ -87,6 +86,8 @@ class RiotPipeline:
                 self.logger.error("Stage to process has been incorrectly set!")
                 raise ValueError(
                     "Stages to process must be a tuple consisting ONLY of 0 or 1's")
+
+        self.batch_insert_limit = batch_insert_limit
 
     @staticmethod
     def process_decorator(function):
@@ -526,12 +527,13 @@ class RiotPipeline:
 
             for match_id in temp_match_ids:
                 data.append((match_id, puuid_str))
+
             if count % self.batch_insert_limit == 0:
                 try:
                     with self._get_connection(self.database_location_absolute_path) as connection:
                         cursor = connection.cursor()
                         insert_query = '''
-                            INSERT INTO Match_ID_Table (matchId, puuid)
+                            INSERT OR IGNORE INTO Match_ID_Table (matchId, puuid)
                             VALUES
                             (?, ?)
                             '''
@@ -539,6 +541,7 @@ class RiotPipeline:
                         connection.commit()
 
                         self.logger.info(f"Batch Inserted {count}")
+                        data = list()
 
                 except sqlite3.IntegrityError as e:
                     self.logger.error(f"Foreign key constraint failed: {e}")
