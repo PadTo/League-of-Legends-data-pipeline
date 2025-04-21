@@ -81,7 +81,6 @@ class RiotPipeline:
         if rate_time_limit == -1:
             rate_time_limit = (100, 120)
 
-        print(type(match_ids_per_tier))
         if not isinstance(match_ids_per_tier, (int, float)) or (match_ids_per_tier < 0 and match_ids_per_tier != -1):
             self.logger.error(
                 "Match IDs per tier must be a non-negative int or float")
@@ -208,7 +207,7 @@ class RiotPipeline:
         create_table_query = '''
             CREATE TABLE IF NOT EXISTS Match_ID_Table(
                 matchId TEXT PRIMARY KEY,
-                puuid TEXT,
+                puuid TEXT, 
                 FOREIGN KEY(puuid) REFERENCES Summoners_Table(puuid) ON DELETE SET NULL
             );
         '''
@@ -660,9 +659,16 @@ class RiotPipeline:
         try:
             with sqlite3.connect(self.database_location_absolute_path) as connection:
                 cursor = connection.cursor()
-                fetch_query = '''SELECT matchId FROM Match_ID_Table'''
+                fetch_query = '''
+                          SELECT
+                            m.matchId,
+                            s.current_tier
+                          FROM Match_ID_Table AS m
+                          INNER JOIN Summoners_table AS s ON s.puuid = m.puuid'''
+
                 match_ids = cursor.execute(fetch_query).fetchall()
                 match_ids_df = pd.read_sql_query(fetch_query, connection)
+                print(match_ids_df.head())
 
                 logging.info(
                     "Successfully fetched match ids from the database")
@@ -673,12 +679,12 @@ class RiotPipeline:
         data_teams = list()
         data_participants = list()
 
-        # if self.matches_per_tier != -1:
+        if self.matches_per_tier != -1:
 
-        #     match_ids_list = self._random_sample_from_df(
-        #         match_ids_df, ["current_tier"], self.match_ids_per_tier, ["puuid"])
+            match_ids = self._random_sample_from_df(
+                match_ids_df, ["current_tier"], self.match_ids_per_tier, ["matchId"])
 
-        #     pass
+        return print(len(match_ids))
 
         try:
             for i, match_id in enumerate(match_ids):
@@ -686,7 +692,6 @@ class RiotPipeline:
 
                 match_data = self.CallsAPI.get_match_data_from_matchId(
                     match_id[0])
-
                 game_tier = self._get_majority_tier(
                     match_data["metadata"]['participants'])
 

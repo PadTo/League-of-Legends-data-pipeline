@@ -22,8 +22,6 @@ if __name__ == "__main__":
         match_ids_per_tier = pipe_config["match_ids_per_tier"]
         matches_per_tier = pipe_config["matches_per_tier"]
 
-        print(match_ids_per_tier, matches_per_tier)
-
     logging_setup(log_config_path)
 
     api_replace = input(
