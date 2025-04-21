@@ -9,12 +9,10 @@ import json
 from pathlib import Path
 import time
 import functools
-import random as rand
 import pandas as pd
 
 
 class RiotPipeline:
-    # TODO: MAYBE add functionality for different sql table structures
     def __init__(self, db_save_location: str,
                  stages_to_process=(1, 1, 1, 1),
                  rate_time_limit=-1,
@@ -363,11 +361,11 @@ class RiotPipeline:
 
         if isinstance(self.match_ids_per_tier, int):
             sampled_df = df_copy.groupby(group_by).apply(
-                lambda x: x.sample(min(samples, len(x)), replace=False))
+                lambda x: x.sample(min(samples, len(x)), replace=False, random_state=42))
 
         elif isinstance(self.match_ids_per_tier, float):
             sampled_df = df_copy.groupby(group_by).sample(
-                frac=samples, replace=False)
+                frac=samples, replace=False, random_state=42)
         else:
             self.logger.error("Match ids per tier ARE NEITHER int nor float")
             return None
@@ -954,6 +952,7 @@ class RiotPipeline:
                 match_ids_df, ["current_tier"], self.match_ids_per_tier, ["matchId"])
 
         data_events = []
+        print(len(match_ids))
         for iter_, match_id in enumerate(match_ids):
             id = match_id[0]
 
@@ -1046,9 +1045,6 @@ class RiotPipeline:
 
             if iter_ == 50:
                 self.logger.info(data_events)
-
-            if iter_ == 0:
-                break
 
             if iter_ % self.batch_insert_limit:
                 try:
