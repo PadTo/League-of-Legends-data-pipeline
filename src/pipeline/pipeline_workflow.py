@@ -670,11 +670,11 @@ class RiotPipeline:
                 match_ids_df = pd.read_sql_query(fetch_query, connection)
                 print(match_ids_df.head())
 
-                logging.info(
+                self.logger.info(
                     "Successfully fetched match ids from the database")
 
         except sqlite3.Error as e:
-            logging.error(f"Database error: {e}")
+            self.logger.error(f"Database error: {e}")
 
         data_teams = list()
         data_participants = list()
@@ -683,9 +683,6 @@ class RiotPipeline:
 
             match_ids = self._random_sample_from_df(
                 match_ids_df, ["current_tier"], self.match_ids_per_tier, ["matchId"])
-
-        return print(len(match_ids))
-
         try:
             for i, match_id in enumerate(match_ids):
                 time.sleep(self.sleep_duration_after_API_call)
