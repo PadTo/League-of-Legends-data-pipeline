@@ -242,12 +242,14 @@ EXAMPLE:
 - Number of match IDs to randomly select per tier before processing.
 - Can be an integer (absolute number) or float (proportion of total).
 - Example: 10000 = select 10,000 match IDs per tier. 0.25 = select 25% of all match IDs per tier.
+- If the value is set to `-1`, then all of the available data is processed.
 
 "matches_per_tier":
 
 - Number of full matches to load and process per tier.
 - Controls how much detailed match data is fetched via the Riot API.
 - Example: 10000 = parse 10,000 full matches per tier.
+- If the value is set to `-1`, then all of the available data is processed.
 
 ### Run the Main Script
 
