@@ -4,9 +4,6 @@
 - **Purpose**: Automated, configurable data pipeline for fetching, filtering, and storing _League of Legends_ match data using Riot's official API.
 - **Additional Advanced Features to be Added in the Future**:
   - A class that will include functions to fetch data from the tables based on the desired parameters
-  - Option to adjust the database structure more easily (including columns, foreign|primary key constraints, etc.)
-  - Data gathering limits on stages 2, 3 and 4
-  - Adding a column for the match end type for match id's table
 
 ---
 
@@ -174,62 +171,83 @@ EXAMPLE:
 {
   "database_save_location": "YOUR/DESIRED/DATA/PATH",
   "logging_configuration_filepath": "YOUR/DESIRED/LOG_CONFIG_PATH/log_config.json",
-  "stages_to_process": [1, 1, 1, 1],
-  "rate_time_limit": [100, 120],
-  "region": "https://eun1.api.riotgames.com",
-  "page_limit": 5,
-  "eventTypesToConsider": ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"],
-  "batch_insert_limit": 1000
+  "stages_to_process": [0, 1, 0, 0], 
+  "rate_limit": -1,
+  "region": -1,
+  "page_limit": -1,
+  "event_types_to_consider": -1,
+  "batch_insert_limit": -1,
+  "match_ids_per_tier": 10000,
+  "matches_per_tier": 10000
 }
 </pre>
 
 ⚠️ CONFIGURATION EXPLANATION:
 
 "database_save_location":
-  - Path where processed data will be saved (e.g., a .db or .sqlite file).
-  - Example: "./data/match_data.db"
-  - Make sure this path exists or the program has permissions to create it.
+
+- Path where processed data will be saved (e.g., a .db or .sqlite file).
+- Example: "./data/match_data.db"
+- Make sure this path exists or the program has permissions to create it.
 
 "logging_configuration_filepath":
-  - Path to the logging config file (usually a JSON file).
-  - Controls logging behavior: what to log, where to log it, log level, etc.
-  - Example: "./config/log_config.json"
+
+- Path to the logging config file (usually a JSON file).
+- Controls logging behavior: what to log, where to log it, log level, etc.
+- Example: "./config/log_config.json"
 
 "stages_to_process":
-  - A list of 4 binary values [1, 1, 1, 1] to toggle pipeline stages.
-      - 1 = run the stage
-      - 0 = skip the stage
-  - Example: [1, 1, 0, 0] runs only stages 1 and 2.
-  - Dependency rules:
-      - Stage 2 depends on stage 1
-      - Stages 3 and 4 depend on stage 2
+
+- A list of 4 binary values [1, 1, 1, 1] to toggle pipeline stages.
+  - 1 = run the stage
+  - 0 = skip the stage
+- Example: [1, 1, 0, 0] runs only stages 1 and 2.
+- Dependency rules:
+  - Stage 2 depends on stage 1
+  - Stages 3 and 4 depend on stage 2
 
 "rate_time_limit":
-  - API rate limit in format [calls, seconds].
-  - Example: [100, 120] = 100 requests allowed per 120 seconds.
-  - Prevents hitting Riot API limits and being throttled or blocked.
+
+- API rate limit in format [calls, seconds].
+- Example: [100, 120] = 100 requests allowed per 120 seconds.
+- Prevents hitting Riot API limits and being throttled or blocked.
 
 "region":
-  - Riot API region URL to query from.
-  - Only European regions are allowed (e.g., "https://eun1.api.riotgames.com").
-  - Using unsupported regions will break the pipeline.
+
+- Riot API region URL to query from.
+- Only European regions are allowed (e.g., "https://eun1.api.riotgames.com").
+- Using unsupported regions will break the pipeline.
 
 "page_limit":
-  - Controls how many pages of match data are fetched per tier/division in stage 1.
-  - Set to -1 to disable the limit (fetch all available pages).
-  - Example: 5 = fetch up to 5 pages per bracket.
+
+- Controls how many pages of match data are fetched per tier/division in stage 1.
+- Set to -1 to disable the limit (fetch all available pages).
+- Example: 5 = fetch up to 5 pages per bracket.
 
 "eventTypesToConsider":
-  - Filters which event types to extract from match timelines.
-  - Example: ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"]
-  - Customize to include only relevant game events.
+
+- Filters which event types to extract from match timelines.
+- Example: ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"]
+- Customize to include only relevant game events.
 
 "batch_insert_limit":
-  - Maximum number of entries to insert into the database at once.
-  - Helps avoid memory overload and improves performance.
-  - Default: 1000 (specific behaviour varies based on processing stage, but a general parameter to control the flow of data)
-  - Batching prevents issues with RAM usage and large single-query loads.
 
+- Maximum number of entries to insert into the database at once.
+- Helps avoid memory overload and improves performance.
+- Default: 1000 (specific behaviour varies based on processing stage, but a general parameter to control the flow of data)
+- Batching prevents issues with RAM usage and large single-query loads.
+
+"match_ids_per_tier":
+
+- Number of match IDs to randomly select per tier before processing.
+- Can be an integer (absolute number) or float (proportion of total).
+- Example: 10000 = select 10,000 match IDs per tier. 0.25 = select 25% of all match IDs per tier.
+
+"matches_per_tier":
+
+- Number of full matches to load and process per tier.
+- Controls how much detailed match data is fetched via the Riot API.
+- Example: 10000 = parse 10,000 full matches per tier.
 
 ### Run the Main Script
 
