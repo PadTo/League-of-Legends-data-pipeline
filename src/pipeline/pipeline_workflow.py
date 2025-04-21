@@ -795,9 +795,6 @@ class RiotPipeline:
                     logging.info(
                         f"Teams Data:\n Team1: {team1_data} \n Team2: {team2_data} \n\n Participant Data:\n {json.dumps(data_participants[0],indent=4)}")
 
-                if i == 1:
-                    break
-
                 if i % self.batch_insert_limit == 0:
                     try:
                         with self._get_connection(self.database_location_absolute_path) as connection:
