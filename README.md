@@ -249,7 +249,7 @@ EXAMPLE:
 
 - Number of full matches to load and process per tier.
 - Controls how much detailed match data is fetched via the Riot API.
-- Example: 10000 = parse 10,000 full matches per tier.
+- Example: 10000 = parse 10,000 full matches per tier. 0.25 = select 25% of all match IDs per tier.
 - If the value is set to `-1`, then all of the available data is processed.
 
 ### Run the Main Script
