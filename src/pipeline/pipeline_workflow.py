@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 import time
 import functools
+import random as rand
+import pandas as pd
 
 
 class RiotPipeline:
@@ -19,7 +21,9 @@ class RiotPipeline:
                  region=-1,
                  page_limit=-1,
                  event_types_to_consider=-1,
-                 batch_insert_limit=-1):
+                 batch_insert_limit=-1,
+                 match_ids_per_tier=-1,
+                 matches_per_tier=-1):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
@@ -63,6 +67,8 @@ class RiotPipeline:
         self.curr_collection_date = str(datetime.datetime.now().date())
         self.database_location_absolute_path = self.db_save_location_path / \
             ('riot_data_database' + '.db')
+        self.match_ids_per_tier = match_ids_per_tier
+        self.matches_per_tier = matches_per_tier
 
         self.logger = logging.getLogger("RiotApiPipeline_Log")
 
@@ -74,6 +80,17 @@ class RiotPipeline:
 
         if rate_time_limit == -1:
             rate_time_limit = (100, 120)
+
+        print(type(match_ids_per_tier))
+        if not isinstance(match_ids_per_tier, (int, float)) or (match_ids_per_tier < 0 and match_ids_per_tier != -1):
+            self.logger.error(
+                "Match IDs per tier must be a non-negative int or float")
+            raise ValueError
+
+        if not isinstance(matches_per_tier, (int, float) or (matches_per_tier < 0 and matches_per_tier != -1)):
+            self.logger.error(
+                "Matches per tier must be a non-negative int or float")
+            raise ValueError
 
         if batch_insert_limit == -1:
             batch_insert_limit = 1000
@@ -323,6 +340,41 @@ class RiotPipeline:
                               create_table_query,
                               commit_mesage)
 
+    def _random_sample_from_df(self, df: pd.DataFrame, group_by: list, samples, return_col: list):
+        """
+        Randomly samples rows from a DataFrame within specified groups, with optional exclusion logic.
+
+        Process:
+            - Groups the DataFrame by the specified column(s).
+            - Samples either a fixed number (`int`) or a fraction (`float`) of rows per group,
+              depending on the type of `self.match_ids_per_tier`.
+            - Returns the selected values from specified columns.
+
+        Parameters:
+            df (pd.DataFrame): The input DataFrame to sample from.
+            group_by (list): Column(s) to group the DataFrame by.
+            samples (int | float): Number or fraction of samples per group.
+            return_col (list): Column(s) whose values should be returned.
+
+        Returns:
+            list: A list of lists containing values from the specified `return_col` columns.
+        """
+
+        df_copy = df.copy()
+
+        if isinstance(self.match_ids_per_tier, int):
+            sampled_df = df_copy.groupby(group_by).apply(
+                lambda x: x.sample(min(samples, len(x)), replace=False))
+
+        elif isinstance(self.match_ids_per_tier, float):
+            sampled_df = df_copy.groupby(group_by).sample(
+                frac=samples, replace=False)
+        else:
+            self.logger.error("Match ids per tier ARE NEITHER int nor float")
+            return None
+
+        return sampled_df[return_col].values
+
     @process_decorator
     def _collect_summoner_entries_by_tier(self, tiers=None, divisions=None):
         """
@@ -508,16 +560,23 @@ class RiotPipeline:
         try:
             with self._get_connection(self.database_location_absolute_path) as connection:
                 cursor = connection.cursor()
-                fetch_query = '''SELECT puuid from Summoners_Table'''
+                fetch_query = '''SELECT puuid, current_tier from Summoners_Table'''
                 puuid_list = cursor.execute(fetch_query).fetchall()
+                puuid_df = pd.read_sql_query(fetch_query, connection)
 
         except sqlite3.Error as e:
             self.logger.error(f"Database error: {e}")
 
         data = list()
+
+        if self.match_ids_per_tier != -1:
+            puuid_list = self._random_sample_from_df(
+                puuid_df, ["current_tier"], self.match_ids_per_tier, ["puuid"])
+
         for count, puuid in enumerate(puuid_list):
+
             time.sleep(self.sleep_duration_after_API_call)
-            puuid_str = puuid[0]
+            puuid_str = puuid
             try:
                 temp_match_ids = self.CallsAPI.get_matchIds_from_puuId(
                     puuId=puuid_str)
@@ -603,6 +662,8 @@ class RiotPipeline:
                 cursor = connection.cursor()
                 fetch_query = '''SELECT matchId FROM Match_ID_Table'''
                 match_ids = cursor.execute(fetch_query).fetchall()
+                match_ids_df = pd.read_sql_query(fetch_query, connection)
+
                 logging.info(
                     "Successfully fetched match ids from the database")
 
@@ -611,6 +672,14 @@ class RiotPipeline:
 
         data_teams = list()
         data_participants = list()
+
+        # if self.matches_per_tier != -1:
+
+        #     match_ids_list = self._random_sample_from_df(
+        #         match_ids_df, ["current_tier"], self.match_ids_per_tier, ["puuid"])
+
+        #     pass
+
         try:
             for i, match_id in enumerate(match_ids):
                 time.sleep(self.sleep_duration_after_API_call)
