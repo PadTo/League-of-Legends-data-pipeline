@@ -204,7 +204,8 @@ EXAMPLE:
 - Example: [1, 1, 0, 0] runs only stages 1 and 2.
 - Dependency rules:
   - Stage 2 depends on stage 1
-  - Stages 3 and 4 depend on stage 2
+  - Stage 3 depends on stage 2
+  - Stage 4 depends on stage 3
 
 "rate_time_limit":
 
