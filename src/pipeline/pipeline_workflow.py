@@ -934,11 +934,10 @@ class RiotPipeline:
 
                 cursor = connection.cursor()
                 fetch_query = '''
-                     SELECT
-                            m.matchId,
-                            s.current_tier
-                          FROM Match_ID_Table AS m
-                          INNER JOIN Summoners_table AS s ON s.puuid = m.puuid'''''
+                          SELECT DISTINCT
+                              matchId,
+                              gameTier
+                          FROM Match_Data_Participants_Table'''
                 match_ids = cursor.execute(fetch_query).fetchall()
                 self.logger.info(
                     "Successfully fetched matchId data from the database participants table ")
@@ -949,7 +948,7 @@ class RiotPipeline:
 
         if self.matches_per_tier != -1:
             match_ids = self._random_sample_from_df(
-                match_ids_df, ["current_tier"], self.match_ids_per_tier, ["matchId"])
+                match_ids_df, ["gameTier"], self.match_ids_per_tier, ["matchId"])
 
         data_events = []
         print(len(match_ids))
@@ -967,7 +966,7 @@ class RiotPipeline:
 
             if iter_ == 0:
                 self.logger.info(
-                    f"CHECKING: Participant id's: {participant_ids}")
+                    f"CHECKING ON 1st ITERATION: Participant id's: {participant_ids}")
 
             for frame in data['info']['frames']:
 
@@ -1015,8 +1014,6 @@ class RiotPipeline:
                         frame_event = (id, puuid_e, team_id_e, in_game_id_e, team_position_e,
                                        position_x_e, position_y_e, timestamp_e, event_name_e, event_type_e)
                         data_events.append(frame_event)
-
-                        self.logger.info(f"Frame Event:{frame_event}")
 
                 general_timestamp = frame['timestamp']
                 for participantId, participantFrame in frame['participantFrames'].items():
