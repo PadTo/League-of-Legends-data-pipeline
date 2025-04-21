@@ -936,19 +936,27 @@ class RiotPipeline:
 
                 cursor = connection.cursor()
                 fetch_query = '''
-                    SELECT DISTINCT matchId FROM Match_Data_Participants_Table '''
+                     SELECT
+                            m.matchId,
+                            s.current_tier
+                          FROM Match_ID_Table AS m
+                          INNER JOIN Summoners_table AS s ON s.puuid = m.puuid'''''
                 match_ids = cursor.execute(fetch_query).fetchall()
                 self.logger.info(
                     "Successfully fetched matchId data from the database participants table ")
-                print(match_ids)
+
+                match_ids_df = pd.read_sql_query(fetch_query, connection)
             except sqlite3.Error as e:
                 self.logger.error(f"Database error: {e}")
+
+        if self.matches_per_tier != -1:
+            match_ids = self._random_sample_from_df(
+                match_ids_df, ["current_tier"], self.match_ids_per_tier, ["matchId"])
 
         data_events = []
         for iter_, match_id in enumerate(match_ids):
             id = match_id[0]
 
-            print(id)
             data = self.CallsAPI.get_match_timestamps_from_matcId(id)
 
             participant_ids = dict()
