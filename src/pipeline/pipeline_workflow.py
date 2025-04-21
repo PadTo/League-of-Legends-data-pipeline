@@ -67,6 +67,7 @@ class RiotPipeline:
             ('riot_data_database' + '.db')
         self.match_ids_per_tier = match_ids_per_tier
         self.matches_per_tier = matches_per_tier
+        self.queue_type = "RANKED_SOLO_5x5"
 
         self.logger = logging.getLogger("RiotApiPipeline_Log")
 
@@ -605,7 +606,7 @@ class RiotPipeline:
                 except sqlite3.Error as e:
                     self.logger.error(f"Database error: {e}")
 
-    def _get_majority_tier(self, player_puuids: list):
+    def _get_majority_tier(self, player_puuids: list, queue_type="RANKED_SOLO_5x5"):
         """
         Determines the most common ranked tier among a list of players.
 
@@ -625,7 +626,8 @@ class RiotPipeline:
             time.sleep(self.sleep_duration_after_API_call)
 
             try:
-                tier = self.CallsAPI.get_summoner_tier_from_puuid(puuid)
+                tier = self.CallsAPI.get_summoner_tier_from_puuid(
+                    puuid, queue_type)
 
             except Exception as e:
                 self.logger.error(f"{e}")
@@ -633,6 +635,7 @@ class RiotPipeline:
             if tier:
                 tier_freq_dict[tier] = tier_freq_dict.get(tier, 0) + 1
 
+            # self.logger.info(tier)
         return max(tier_freq_dict, key=tier_freq_dict.get)
 
     @process_decorator
@@ -666,7 +669,7 @@ class RiotPipeline:
 
                 match_ids = cursor.execute(fetch_query).fetchall()
                 match_ids_df = pd.read_sql_query(fetch_query, connection)
-                print(match_ids_df.head())
+                # print(match_ids_df.head())
 
                 self.logger.info(
                     "Successfully fetched match ids from the database")
@@ -683,46 +686,54 @@ class RiotPipeline:
                 match_ids_df, ["current_tier"], self.match_ids_per_tier, ["matchId"])
         try:
             for i, match_id in enumerate(match_ids):
+
                 time.sleep(self.sleep_duration_after_API_call)
 
                 match_data = self.CallsAPI.get_match_data_from_matchId(
                     match_id[0])
                 game_tier = self._get_majority_tier(
-                    match_data["metadata"]['participants'])
+                    match_data["metadata"]['participants'], self.queue_type)
 
                 teams_data = match_data["info"]["teams"]
 
                 team1 = teams_data[0]
                 team2 = teams_data[1]
 
-                killedAtakhan1 = team1["objectives"].get("atakhan", {}).get(
-                    "kills", 0)  # Default to 0 if missing
-                baronKills1 = team1["objectives"]["baron"]["kills"]
-                championKills1 = team1["objectives"]["champion"]["kills"]
-                dragonKills1 = team1["objectives"]["dragon"]["kills"]
-                # Assuming "first" indicates dragon soul obtained
-                dragonSoul1 = False if dragonKills1 < 4 else True
-                hordeKills1 = team1["objectives"]["horde"]["kills"]
-                riftHeraldKills1 = team1["objectives"]["riftHerald"]["kills"]
-                towerKills1 = team1["objectives"]["tower"]["kills"]
-                teamId1 = team1["teamId"]
-                teamWin1 = team1["win"]
+                # Team 1
+                objectives1 = team1.get("objectives", {})
+
+                killedAtakhan1 = objectives1.get("atakhan", {}).get("kills", 0)
+                baronKills1 = objectives1.get("baron", {}).get("kills", 0)
+                championKills1 = objectives1.get(
+                    "champion", {}).get("kills", 0)
+                dragonKills1 = objectives1.get("dragon", {}).get("kills", 0)
+                dragonSoul1 = dragonKills1 >= 4
+                hordeKills1 = objectives1.get("horde", {}).get("kills", 0)
+                riftHeraldKills1 = objectives1.get(
+                    "riftHerald", {}).get("kills", 0)
+                towerKills1 = objectives1.get("tower", {}).get("kills", 0)
+
+                teamId1 = team1.get("teamId", 0)
+                teamWin1 = team1.get("win", False)
 
                 # Team 2
-                killedAtakhan2 = team2["objectives"].get("atakhan", {}).get(
-                    "kills", 0)  # Default to 0 if missing
-                baronKills2 = team2["objectives"]["baron"]["kills"]
-                championKills2 = team2["objectives"]["champion"]["kills"]
-                dragonKills2 = team2["objectives"]["dragon"]["kills"]
-                # Assuming "first" indicates dragon soul obtained
-                dragonSoul2 = False if dragonKills2 < 4 else True
-                hordeKills2 = team2["objectives"]["horde"]["kills"]
-                riftHeraldKills2 = team2["objectives"]["riftHerald"]["kills"]
-                towerKills2 = team2["objectives"]["tower"]["kills"]
-                teamId2 = team2["teamId"]
-                teamWin2 = team2["win"]
+                objectives2 = team2.get("objectives", {})
 
-                endOfGameResult = match_data["info"]["endOfGameResult"]
+                killedAtakhan2 = objectives2.get("atakhan", {}).get("kills", 0)
+                baronKills2 = objectives2.get("baron", {}).get("kills", 0)
+                championKills2 = objectives2.get(
+                    "champion", {}).get("kills", 0)
+                dragonKills2 = objectives2.get("dragon", {}).get("kills", 0)
+                dragonSoul2 = dragonKills2 >= 4
+                hordeKills2 = objectives2.get("horde", {}).get("kills", 0)
+                riftHeraldKills2 = objectives2.get(
+                    "riftHerald", {}).get("kills", 0)
+                towerKills2 = objectives2.get("tower", {}).get("kills", 0)
+
+                teamId2 = team2.get("teamId", 0)
+                teamWin2 = team2.get("win", False)
+
+                endOfGameResult = match_data["info"].get("endOfGameResult", 0)
 
                 team1_data = (
                     match_id[0], killedAtakhan1, baronKills1, championKills1, dragonKills1,
@@ -746,53 +757,60 @@ class RiotPipeline:
                     game_duration = match_data["info"]["gameDuration"] * 0.1 / 60
 
                 for participant in participants:
+
                     gold_per_minute = participant["goldEarned"] / game_duration
                     data_participants.append((
-                        participant["puuid"],
+                        participant.get("puuid"),
                         match_id[0],
-                        participant["teamId"],
+                        participant.get("teamId"),
                         game_tier,
 
-                        # Champions kills
-                        participant["challenges"]["takedowns"],
-                        participant["assists"],
-                        participant["deaths"],
-                        participant["challenges"]["kda"],
+                        # Champion kills
+                        participant.get("challenges", {}).get("takedowns", 0),
+                        participant.get("assists", 0),
+                        participant.get("deaths", 0),
+                        participant.get("challenges", {}).get("kda", 0),
 
-                        participant["goldEarned"],
+                        participant.get("goldEarned", 0),
                         gold_per_minute,
-                        participant["totalMinionsKilled"],
-                        participant["challenges"]["maxLevelLeadLaneOpponent"],
-                        participant["challenges"]["laneMinionsFirst10Minutes"],
+                        participant.get("totalMinionsKilled", 0),
+                        participant.get("challenges", {}).get(
+                            "maxLevelLeadLaneOpponent", 0),
+                        participant.get("challenges", {}).get(
+                            "laneMinionsFirst10Minutes", 0),
 
-                        participant["challenges"]["damagePerMinute"],
-                        participant["challenges"]["killParticipation"],
+                        participant.get("challenges", {}).get(
+                            "damagePerMinute", 0),
+                        participant.get("challenges", {}).get(
+                            "killParticipation", 0),
 
-                        participant["challenges"]["controlWardsPlaced"],
-                        participant["wardsPlaced"],
-                        participant["wardsKilled"],
-                        participant["visionScore"],
-                        participant["visionWardsBoughtInGame"],
+                        participant.get("challenges", {}).get(
+                            "controlWardsPlaced", 0),
+                        participant.get("wardsPlaced", 0),
+                        participant.get("wardsKilled", 0),
+                        participant.get("visionScore", 0),
+                        participant.get("visionWardsBoughtInGame", 0),
 
-                        participant["assistMePings"],
-                        participant["allInPings"],
-                        participant["enemyMissingPings"],
-                        participant["needVisionPings"],
-                        participant["onMyWayPings"],
-                        participant["getBackPings"],
-                        participant["pushPings"],
-                        participant["holdPings"],
+                        participant.get("assistMePings", 0),
+                        participant.get("allInPings", 0),
+                        participant.get("enemyMissingPings", 0),
+                        participant.get("needVisionPings", 0),
+                        participant.get("onMyWayPings", 0),
+                        participant.get("getBackPings", 0),
+                        participant.get("pushPings", 0),
+                        participant.get("holdPings", 0),
 
-                        participant["championName"],
-                        participant["individualPosition"],
-                        participant["teamPosition"],
+                        participant.get("championName", ""),
+                        participant.get("individualPosition", ""),
+                        participant.get("teamPosition", ""),
 
-                        participant["challenges"]["hadOpenNexus"],
-                        participant["win"],
+                        participant.get("challenges", {}).get(
+                            "hadOpenNexus", False),
+                        participant.get("win", False),
                         endOfGameResult
                     ))
                 if i == 0:
-                    logging.info(
+                    self.logger.info(
                         f"Teams Data:\n Team1: {team1_data} \n Team2: {team2_data} \n\n Participant Data:\n {json.dumps(data_participants[0],indent=4)}")
 
                 if i % self.batch_insert_limit == 0:
@@ -870,13 +888,13 @@ class RiotPipeline:
                                 insert_query2, data_participants)
                             connection.commit()
 
-                            logging.info("Insert of teams data successful")
+                            self.logger.info("Insert of teams data successful")
 
                     except sqlite3.Error as e:
-                        logging.error(f"Database error:{e}")
+                        self.logger.error(f"Database error:{e}")
 
         except Exception as e:
-            logging.error(f"{e}")
+            self.logger.error(f"{e}")
 
     def _get_teamId_teamPos(self, puuid, match_id):
         """
