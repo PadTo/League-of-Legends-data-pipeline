@@ -131,7 +131,7 @@ class RiotApi:
         finally:
             return league_request_json
 
-    def get_summoner_tier_from_puuid(self, puuid: str):
+    def get_summoner_tier_from_puuid(self, puuid: str, queue_type="RANKED_SOLO_5x5"):
         """
         Retrieves the competitive tier for a given summoner's PuuID.
 
@@ -153,12 +153,23 @@ class RiotApi:
             league_request = requests.get(url, headers=self.request_header)
             self.status_response_exception(league_request.status_code)
 
-            tier = league_request.json()[0]["tier"]
+            league_data = league_request.json()
+            tier = None
+            if not league_data:
+                return "UNRANKED"
+            else:
+                for entry in league_data:
+                    if entry.get("queueType", 0) == queue_type:
+                        tier = entry.get("tier", "")
+            if tier == None:
+                tier = "UNRANKED"
+
         except StatusCodeError as e:
             self.logger.error(e)
             raise e
         except Exception as e:
             self.logger.error(e)
+            self.logger.info(league_request.json())
             raise e
 
         return tier
@@ -197,7 +208,6 @@ class RiotApi:
             raise e
 
     def get_matchIds_from_puuId(self, puuId: str, game_type="ranked", start=0, count=100):
-        # TODO: Create an error for bad game_type parameter
         """
         Fetches match IDs for a given PuuID, based on the game type and number of matches.
 
