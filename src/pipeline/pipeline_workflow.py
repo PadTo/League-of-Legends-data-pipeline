@@ -362,11 +362,11 @@ class RiotPipeline:
 
         if isinstance(self.match_ids_per_tier, int):
             sampled_df = df_copy.groupby(group_by).apply(
-                lambda x: x.sample(min(samples, len(x)), replace=False, random_state=42))
+                lambda x: x.sample(min(samples, len(x)), replace=False))
 
         elif isinstance(self.match_ids_per_tier, float):
             sampled_df = df_copy.groupby(group_by).sample(
-                frac=samples, replace=False, random_state=42)
+                frac=samples, replace=False)
         else:
             self.logger.error("Match ids per tier ARE NEITHER int nor float")
             return None
@@ -558,7 +558,11 @@ class RiotPipeline:
         try:
             with self._get_connection(self.database_location_absolute_path) as connection:
                 cursor = connection.cursor()
-                fetch_query = '''SELECT puuid, current_tier from Summoners_Table'''
+                fetch_query = '''
+                              SELECT
+                                  puuid,
+                                  current_tier
+                              from Summoners_Table'''
                 puuid_list = cursor.execute(fetch_query).fetchall()
                 puuid_df = pd.read_sql_query(fetch_query, connection)
 
@@ -686,7 +690,6 @@ class RiotPipeline:
                 match_ids_df, ["current_tier"], self.match_ids_per_tier, ["matchId"])
         try:
             for i, match_id in enumerate(match_ids):
-
                 time.sleep(self.sleep_duration_after_API_call)
 
                 match_data = self.CallsAPI.get_match_data_from_matchId(
