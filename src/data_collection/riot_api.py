@@ -8,8 +8,6 @@ class StatusCodeError(Exception):
         self.message = message
         super().__init__(f"Response Code {status_code}: {message}")
 
-# TODO: MAYBE ADDING THE OPTION TO CHOOSE REGIONS
-
 
 class RiotApi:
     """
