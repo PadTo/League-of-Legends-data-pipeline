@@ -6,7 +6,7 @@
   "region": -1,
   "page_limit": -1,
   "event_types_to_consider": -1,
-  "batch_insert_limit": -1,
+  "batch_insert_limit": 500,
   "match_ids_per_tier": 10000,
   "matches_per_tier": 10000
 }
