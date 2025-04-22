@@ -263,9 +263,11 @@ When you run the file, you will be prompted to input your Riot API key. You can 
   If you type Y, you'll be prompted to enter your Riot API key:
 </pre>
 
+
 Once the key is entered, the pipeline will start and begin processing data.
 
 NOTE:
 
 - The collection process takes a long time (Hours) due to rate limiting (rate limits can be adjusted based on your needs and account constraints related to rates)
 - The data WILL NOT be uploaded due to the database having millions of entries
+- If the pipeline's API calls have request code 400 even though the API key is valid, re-generating the key might fix the problem
