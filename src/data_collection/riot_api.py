@@ -54,6 +54,22 @@ class RiotApi:
         self.request_header = {"X-Riot-Token": self.riot_api_key}
         self.logger = logging.getLogger("RiotApi_Log")
 
+    def _check_if_key_valid(self):
+        url = "".join(
+            [self.base_url_euw1, "/lol/platform/v3/champion-rotations"])
+
+        try:
+            response = requests.get(url, headers=self.request_header)
+            response_json = response.json()
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Request Failed: {e}")
+
+        if response.status_code == 200:
+            return True
+        else:
+            self.logger.error(response_json.get("status")['message'])
+            return False
+
     def status_response_exception(self, status_code) -> bool:
         """
         Handles different HTTP status codes and raises exceptions if the status code is not 200.

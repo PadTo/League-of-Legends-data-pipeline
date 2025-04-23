@@ -1120,6 +1120,8 @@ class RiotPipeline:
         This function initiates the process of setting up the database and collecting all the required data for
         the project.
         """
-        self._create_database()
-        self._create_all_tables()
-        self._collect_data()
+
+        if self.CallsAPI._check_if_key_valid():
+            self._create_database()
+            self._create_all_tables()
+            self._collect_data()
