@@ -28,7 +28,7 @@ League-of-Legends-data-pipeline/
 │   ├── log_config.json
 ├── logs/
 ├── notebooks/
-│   ├── test.ipynb
+│   ├── playground.ipynb
 ├── src/
 │   ├── __pycache__/
 │   ├── data_collection/
@@ -39,7 +39,7 @@ League-of-Legends-data-pipeline/
 │   │   ├── pipeline_workflow.py
 │   ├── processing/
 │   │   ├── __init__.py
-│   │   ├── response_filters.py
+│   │   ├── LoLDatabaseQuery.py
 │   ├── riot_key_folder/
 │   │   ├── __init__.py
 │   │   ├── config_template.json
@@ -49,6 +49,7 @@ League-of-Legends-data-pipeline/
 ├── .gitignore
 ├── photos/
 │   ├── API_Call_Workflow.png
+│   ├── Database_Tables_Relationships
 ├── documentation.txt
 ├── pipeline_configuration
 ├── main.py
@@ -262,7 +263,6 @@ When you run the file, you will be prompted to input your Riot API key. You can 
   Do you want to replace the API key (Y for YES | N for NO)?
   If you type Y, you'll be prompted to enter your Riot API key:
 </pre>
-
 
 Once the key is entered, the pipeline will start and begin processing data.
 
