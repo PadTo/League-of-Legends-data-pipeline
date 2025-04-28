@@ -61,7 +61,6 @@ class RiotPipeline:
         self.db_save_location_path = Path(db_save_location)
         self.page_limit = page_limit
         self.CallsAPI = RiotApi(self.API_key, region)
-        self.ResponseFiltersAPI = API_JsonResponseFilters()
         self.curr_collection_date = str(datetime.datetime.now().date())
         self.database_location_absolute_path = self.db_save_location_path / \
             ('riot_data_database' + '.db')
@@ -371,6 +370,7 @@ class RiotPipeline:
             self.logger.error("Match ids per tier ARE NEITHER int nor float")
             return None
 
+        self.logger.info(f"Fetched Match IDs :\n{sampled_df}")
         return sampled_df[return_col].values
 
     @process_decorator
@@ -1057,9 +1057,6 @@ class RiotPipeline:
                     participant_event = (id, puuid_p, team_id_p, in_game_id_p, team_position_p,
                                          position_x_p, position_y_p, timestamp_p, event_name_p, event_type_p)
                     data_events.append(participant_event)
-
-            if iter_ == 50:
-                self.logger.info(data_events)
 
             if iter_ % self.batch_insert_limit:
                 try:
