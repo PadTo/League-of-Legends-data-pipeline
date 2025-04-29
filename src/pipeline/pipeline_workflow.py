@@ -578,7 +578,7 @@ class RiotPipeline:
         for count, puuid in enumerate(puuid_list):
 
             time.sleep(self.sleep_duration_after_API_call)
-            puuid_str = puuid
+            puuid_str = puuid[0]
             try:
                 temp_match_ids = self.CallsAPI.get_matchIds_from_puuId(
                     puuId=puuid_str)
@@ -593,9 +593,11 @@ class RiotPipeline:
 
                 game_time_stamp = match_data.get(
                     "info", 0).get("gameEndTimestamp", 0)
+
                 data.append((match_id, puuid_str, game_time_stamp))
 
             if count % self.batch_insert_limit == 0:
+
                 try:
                     with self._get_connection(self.database_location_absolute_path) as connection:
                         cursor = connection.cursor()
