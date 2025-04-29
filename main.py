@@ -37,6 +37,7 @@ if __name__ == "__main__":
         rate_time_limit=rate_limit,
         region=region,
         event_types_to_consider=event_types_to_consider,
+        batch_insert_limit=batch_insert_limit,
         match_ids_per_tier=match_ids_per_tier,
         matches_per_tier=matches_per_tier)
 
