@@ -1,5 +1,4 @@
 from data_collection.riot_api import RiotApi
-from processing.response_filters import API_JsonResponseFilters
 from riot_key_folder.riot_api_key import get_riot_api_key
 import sqlite3
 from pathlib import Path
@@ -206,6 +205,7 @@ class RiotPipeline:
             CREATE TABLE IF NOT EXISTS Match_ID_Table(
                 matchId TEXT PRIMARY KEY,
                 puuid TEXT, 
+                gameTimeStamp INTEGER,
                 FOREIGN KEY(puuid) REFERENCES Summoners_Table(puuid) ON DELETE SET NULL
             );
         '''
@@ -587,16 +587,22 @@ class RiotPipeline:
                 self.logger.error(f"{e}")
 
             for match_id in temp_match_ids:
-                data.append((match_id, puuid_str))
+                time.sleep(self.sleep_duration_after_API_call)
+                match_data = self.CallsAPI.get_match_data_from_matchId(
+                    match_id)
+
+                game_time_stamp = match_data.get(
+                    "info", 0).get("gameEndTimestamp", 0)
+                data.append((match_id, puuid_str, game_time_stamp))
 
             if count % self.batch_insert_limit == 0:
                 try:
                     with self._get_connection(self.database_location_absolute_path) as connection:
                         cursor = connection.cursor()
                         insert_query = '''
-                            INSERT OR IGNORE INTO Match_ID_Table (matchId, puuid)
+                            INSERT OR IGNORE INTO Match_ID_Table (matchId, puuid, gameTimeStamp)
                             VALUES
-                            (?, ?)
+                            (?, ?, ?)
                             '''
                         cursor.executemany(insert_query, data)
                         connection.commit()
@@ -638,6 +644,11 @@ class RiotPipeline:
 
             if tier:
                 tier_freq_dict[tier] = tier_freq_dict.get(tier, 0) + 1
+
+            self.logger.info(tier)
+            if tier_freq_dict[tier] >= 6:
+                self.logger.info("This has worked")
+                return tier
 
             # self.logger.info(tier)
         return max(tier_freq_dict, key=tier_freq_dict.get)
