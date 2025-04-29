@@ -609,7 +609,7 @@ class RiotPipeline:
                         cursor.executemany(insert_query, data)
                         connection.commit()
 
-                        self.logger.info(f"Batch Inserted {count}")
+                        self.logger.info(f"Batch: {count/3} INSERTED")
                         data = list()
 
                 except sqlite3.IntegrityError as e:
