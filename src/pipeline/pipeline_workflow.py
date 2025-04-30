@@ -19,9 +19,9 @@ class RiotPipeline:
                  page_limit=-1,
                  event_types_to_consider=-1,
                  batch_insert_limit=-1,
-                 match_ids_per_tier=-1,
+                 players_per_tier=-1,
                  matches_per_tier=-1,
-                 day_limit=864000):
+                 day_limit=12):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
@@ -64,11 +64,11 @@ class RiotPipeline:
         self.curr_collection_date = str(datetime.datetime.now().date())
         self.database_location_absolute_path = self.db_save_location_path / \
             ('riot_data_database' + '.db')
-        self.match_ids_per_tier = match_ids_per_tier
+        self.players_per_tier = players_per_tier
         self.matches_per_tier = matches_per_tier
         self.queue_type = "RANKED_SOLO_5x5"
-        self.curr_time = int(time.time())  # UNIX TimeStamp
-        self.day_limit = day_limit
+        self.curr_time = int(time.time()) * 10**3  # UNIX TimeStamp
+        self.day_limit = day_limit * 24 * 60 * 60 * 10**3
 
         self.logger = logging.getLogger("RiotApiPipeline_Log")
 
@@ -81,7 +81,7 @@ class RiotPipeline:
         if rate_time_limit == -1:
             rate_time_limit = (100, 120)
 
-        if not isinstance(match_ids_per_tier, (int, float)) or (match_ids_per_tier < 0 and match_ids_per_tier != -1):
+        if not isinstance(players_per_tier, (int, float)) or (players_per_tier < 0 and players_per_tier != -1):
             self.logger.error(
                 "Match IDs per tier must be a non-negative int or float")
             raise ValueError
@@ -362,11 +362,11 @@ class RiotPipeline:
 
         df_copy = df.copy()
 
-        if isinstance(self.match_ids_per_tier, int):
+        if isinstance(self.players_per_tier, int):
             sampled_df = df_copy.groupby(group_by).apply(
                 lambda x: x.sample(min(samples, len(x)), replace=False))
 
-        elif isinstance(self.match_ids_per_tier, float):
+        elif isinstance(self.players_per_tier, float):
             sampled_df = df_copy.groupby(group_by).sample(
                 frac=samples, replace=False)
         else:
@@ -574,9 +574,10 @@ class RiotPipeline:
 
         data = list()
 
-        if self.match_ids_per_tier != -1:
+        self.logger.info(puuid_df)
+        if self.players_per_tier != -1:
             puuid_list = self._random_sample_from_df(
-                puuid_df, ["current_tier"], self.match_ids_per_tier, ["puuid"])
+                puuid_df, ["current_tier"], self.players_per_tier, ["puuid"])
 
         for count, puuid in enumerate(puuid_list):
 
@@ -597,10 +598,16 @@ class RiotPipeline:
                 game_time_stamp = match_data.get(
                     "info", 0).get("gameEndTimestamp", 0)
 
-                if game_time_stamp - self.curr_time <= self.day_limit:
-                    data.append((match_id, puuid_str, game_time_stamp))
+                print(game_time_stamp - self.curr_time)
 
-            if count % self.batch_insert_limit == 0:
+                if self.curr_time - game_time_stamp <= self.day_limit:
+                    data.append((match_id, puuid_str, game_time_stamp))
+                else:
+                    self.logger.info(
+                        f"I HAVE SKIPPED MATCH ID {game_time_stamp} \n puuid: {puuid} \n Skipping Subsequent Matches")
+                    break
+
+            if count % self.batch_insert_limit == 0 and data:
 
                 try:
                     with self._get_connection(self.database_location_absolute_path) as connection:
@@ -707,7 +714,7 @@ class RiotPipeline:
         if self.matches_per_tier != -1:
 
             match_ids = self._random_sample_from_df(
-                match_ids_df, ["current_tier"], self.match_ids_per_tier, ["matchId"])
+                match_ids_df, ["current_tier"], self.players_per_tier, ["matchId"])
         try:
             for i, match_id in enumerate(match_ids):
                 time.sleep(self.sleep_duration_after_API_call)
@@ -986,7 +993,7 @@ class RiotPipeline:
 
         if self.matches_per_tier != -1:
             match_ids = self._random_sample_from_df(
-                match_ids_df, ["gameTier"], self.match_ids_per_tier, ["matchId"])
+                match_ids_df, ["gameTier"], self.players_per_tier, ["matchId"])
 
         data_events = []
         print(len(match_ids))

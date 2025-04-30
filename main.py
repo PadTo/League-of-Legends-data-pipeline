@@ -19,7 +19,7 @@ if __name__ == "__main__":
         region = pipe_config["region"]
         event_types_to_consider = pipe_config["event_types_to_consider"]
         batch_insert_limit = pipe_config["batch_insert_limit"]
-        match_ids_per_tier = pipe_config["match_ids_per_tier"]
+        players_per_tier = pipe_config["players_per_tier"]
         matches_per_tier = pipe_config["matches_per_tier"]
 
     logging_setup(log_config_path)
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         region=region,
         event_types_to_consider=event_types_to_consider,
         batch_insert_limit=batch_insert_limit,
-        match_ids_per_tier=match_ids_per_tier,
+        players_per_tier=players_per_tier,
         matches_per_tier=matches_per_tier)
 
     pipeline.start_pipeline()
