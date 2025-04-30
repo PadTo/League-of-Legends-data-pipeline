@@ -21,7 +21,7 @@ class RiotPipeline:
                  batch_insert_limit=-1,
                  players_per_tier=-1,
                  matches_per_tier=-1,
-                 day_limit=12):
+                 day_limit=-1):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
