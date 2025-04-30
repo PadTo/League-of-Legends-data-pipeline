@@ -68,7 +68,14 @@ class RiotPipeline:
         self.matches_per_tier = matches_per_tier
         self.queue_type = "RANKED_SOLO_5x5"
         self.curr_time = int(time.time()) * 10**3  # UNIX TimeStamp
-        self.day_limit = day_limit * 24 * 60 * 60 * 10**3
+
+        if day_limit == -1:
+            self.day_limit = 12
+
+        else:
+            self.day_limit = day_limit
+
+        self.day_limit *= (24 * 60 * 60 * 10**3)
 
         self.logger = logging.getLogger("RiotApiPipeline_Log")
 
@@ -598,8 +605,6 @@ class RiotPipeline:
                 game_time_stamp = match_data.get(
                     "info", 0).get("gameEndTimestamp", 0)
 
-                print(game_time_stamp - self.curr_time)
-
                 if self.curr_time - game_time_stamp <= self.day_limit:
                     data.append((match_id, puuid_str, game_time_stamp))
                 else:
@@ -660,7 +665,6 @@ class RiotPipeline:
 
             self.logger.info(tier)
             if tier_freq_dict[tier] >= 6:
-                self.logger.info("This has worked")
                 return tier
 
             # self.logger.info(tier)
@@ -696,7 +700,7 @@ class RiotPipeline:
                             m.gameTimeStamp
                           FROM Match_ID_Table AS m
                           INNER JOIN Summoners_table AS s ON s.puuid = m.puuid
-                          WHERE gameTimeStamp '''
+                          WHERE gameTimeStamp - {self.curr_time} <= {self.day_limit}'''
 
                 match_ids = cursor.execute(fetch_query).fetchall()
                 match_ids_df = pd.read_sql_query(fetch_query, connection)
@@ -978,11 +982,14 @@ class RiotPipeline:
             try:
 
                 cursor = connection.cursor()
-                fetch_query = '''
+                fetch_query = f'''
                           SELECT DISTINCT
-                              matchId,
-                              gameTier
-                          FROM Match_Data_Participants_Table'''
+                              m.matchId,
+                              m.gameTier,
+
+                          FROM Match_Data_Participants_Table AS m
+                          INNER JOIN Match_ID_Table AS i ON i.matchId = m.matchId
+                          WHERE gameTimeStamp - {self.curr_time} <= {self.day_limit}'''
                 match_ids = cursor.execute(fetch_query).fetchall()
                 self.logger.info(
                     "Successfully fetched matchId data from the database participants table ")
