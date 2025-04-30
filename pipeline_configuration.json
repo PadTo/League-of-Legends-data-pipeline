@@ -1,12 +1,13 @@
 {
   "database_save_location": "D:\\LoL Analysis Project\\data",
   "logging_configuration_filepath": "D:\\LoL Analysis Project\\log_config\\log_config.json",
-  "stages_to_process": [0,0,1,1], 
+  "stages_to_process": [0,1,0,0], 
   "rate_limit": -1,
   "region": -1,
-  "page_limit": -1,
+  "page_limit": 2,
   "event_types_to_consider": -1,
-  "batch_insert_limit": 500,
-  "match_ids_per_tier": 10000,
-  "matches_per_tier": 10000
+  "batch_insert_limit": 3,
+  "players_per_tier": 5,
+  "matches_per_tier": 100
+  "day_limit": 12
 }
