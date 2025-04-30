@@ -177,81 +177,84 @@ EXAMPLE:
   "region": -1,
   "page_limit": -1,
   "event_types_to_consider": -1,
-  "batch_insert_limit": -1,
-  "match_ids_per_tier": 10000,
-  "matches_per_tier": 10000
+  "batch_insert_limit": 3,
+  "players_per_tier": 5,
+  "matches_per_tier": 100,
+  "day_limit": 12
 }
 </pre>
 
 ⚠️ CONFIGURATION EXPLANATION:
 
-"database_save_location":
+database_save_location:
 
-- Path where processed data will be saved (e.g., a .db or .sqlite file).
-- Example: "./data/match_data.db"
-- Make sure this path exists or the program has permissions to create it.
+- Description: Path where processed data will be saved (e.g., a .db or .sqlite file).
+- Example: "D:\\LoL Analysis Project\\data"
+- Ensure the folder exists or the program has permission to create it.
 
-"logging_configuration_filepath":
+logging_configuration_filepath:
 
-- Path to the logging config file (usually a JSON file).
-- Controls logging behavior: what to log, where to log it, log level, etc.
-- Example: "./config/log_config.json"
+- Description: Path to the logging config file (JSON format).
+- Controls: What to log, log levels, format, output files, etc.
+- Example: "D:\\LoL Analysis Project\\log_config\\log_config.json"
 
-"stages_to_process":
+stages_to_process:
 
-- A list of 4 binary values [1, 1, 1, 1] to toggle pipeline stages.
+- Description: A list of 4 binary values [1, 1, 1, 1] to toggle pipeline stages.
   - 1 = run the stage
   - 0 = skip the stage
-- Example: [1, 1, 0, 0] runs only stages 1 and 2.
+- Example: [1, 0, 0, 1] runs stages 1 and 4.
 - Dependency rules:
   - Stage 2 depends on stage 1
   - Stage 3 depends on stage 2
   - Stage 4 depends on stage 3
 
-"rate_time_limit":
+rate_limit:
 
-- API rate limit in format [calls, seconds].
+- Description: API rate limit (format: [calls, seconds]) or -1 for default/no limit.
 - Example: [100, 120] = 100 requests allowed per 120 seconds.
-- Prevents hitting Riot API limits and being throttled or blocked.
 
-"region":
+region:
 
-- Riot API region URL to query from.
-- Only European regions are allowed (e.g., "https://eun1.api.riotgames.com").
-- Using unsupported regions will break the pipeline.
+- Description: Riot API region URL to query from.
+- Allowed: Only European regions (e.g., "https://eun1.api.riotgames.com")
+- Invalid or unsupported regions will break the pipeline.
 
-"page_limit":
+page_limit:
 
-- Controls how many pages of match data are fetched per tier/division in stage 1.
-- Set to -1 to disable the limit (fetch all available pages).
-- Example: 5 = fetch up to 5 pages per bracket.
+- Description: Max number of pages of match data fetched per tier/division in stage 1.
+- Example: 2 = fetch up to 2 pages per bracket.
+- -1 disables the limit (fetch all available pages).
 
-"eventTypesToConsider":
+event_types_to_consider:
 
-- Filters which event types to extract from match timelines.
-- Example: ["CHAMPION_KILL", "BUILDING_KILL", "ELITE_MONSTER_KILL"]
-- Customize to include only relevant game events.
+- Description: Filters which event types to extract from match timelines.
+- Example: ["CHAMPION_KILL", "BUILDING_KILL"]
+- Use -1 to include all default event types.
 
-"batch_insert_limit":
+batch_insert_limit:
 
-- Maximum number of entries to insert into the database at once.
-- Helps avoid memory overload and improves performance.
-- Default: 1000 (specific behaviour varies based on processing stage, but a general parameter to control the flow of data)
-- Batching prevents issues with RAM usage and large single-query loads.
+- Description: Max number of entries inserted into the database at once.
+- Prevents RAM issues and improves performance.
+- Example: 3 = insert 3 records per batch.
 
-"match_ids_per_tier":
+players_per_tier:
 
-- Number of match IDs to randomly select per tier before processing.
-- Can be an integer (absolute number) or float (proportion of total).
-- Example: 10000 = select 10,000 match IDs per tier. 0.25 = select 25% of all match IDs per tier.
-- If the value is set to `-1`, then all of the available data is processed.
+- Description: Number of players to consider per tier.
+- Example: 5 = fetch data for 5 players per tier.
 
-"matches_per_tier":
+matches_per_tier:
 
-- Number of full matches to load and process per tier.
-- Controls how much detailed match data is fetched via the Riot API.
-- Example: 10000 = parse 10,000 full matches per tier. 0.25 = select 25% of all match IDs per tier.
-- If the value is set to `-1`, then all of the available data is processed.
+- Description: Number of full matches to load and process per tier.
+- Can be absolute (e.g., 100) or proportional (e.g., 0.25 = 25%).
+- -1 processes all available data.
+
+day_limit:
+
+- Description: Restricts data to matches played within the last N days.
+- Example: 30 = only process matches from the last 30 days.
+- -1 disables this limit.
+  """
 
 ### Run the Main Script
 
