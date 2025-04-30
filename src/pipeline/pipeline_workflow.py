@@ -20,7 +20,8 @@ class RiotPipeline:
                  event_types_to_consider=-1,
                  batch_insert_limit=-1,
                  match_ids_per_tier=-1,
-                 matches_per_tier=-1):
+                 matches_per_tier=-1,
+                 day_limit=864000):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
@@ -66,6 +67,8 @@ class RiotPipeline:
         self.match_ids_per_tier = match_ids_per_tier
         self.matches_per_tier = matches_per_tier
         self.queue_type = "RANKED_SOLO_5x5"
+        self.curr_time = int(time.time())  # UNIX TimeStamp
+        self.day_limit = day_limit
 
         self.logger = logging.getLogger("RiotApiPipeline_Log")
 
@@ -594,7 +597,8 @@ class RiotPipeline:
                 game_time_stamp = match_data.get(
                     "info", 0).get("gameEndTimestamp", 0)
 
-                data.append((match_id, puuid_str, game_time_stamp))
+                if game_time_stamp - self.curr_time <= self.day_limit:
+                    data.append((match_id, puuid_str, game_time_stamp))
 
             if count % self.batch_insert_limit == 0:
 
@@ -674,15 +678,18 @@ class RiotPipeline:
         Returns:
             Populates `data_teams` and `data_participants` for future insertion.
         """
+
         try:
             with sqlite3.connect(self.database_location_absolute_path) as connection:
                 cursor = connection.cursor()
-                fetch_query = '''
+                fetch_query = f'''
                           SELECT
                             m.matchId,
-                            s.current_tier
+                            s.current_tier,
+                            m.gameTimeStamp
                           FROM Match_ID_Table AS m
-                          INNER JOIN Summoners_table AS s ON s.puuid = m.puuid'''
+                          INNER JOIN Summoners_table AS s ON s.puuid = m.puuid
+                          WHERE gameTimeStamp '''
 
                 match_ids = cursor.execute(fetch_query).fetchall()
                 match_ids_df = pd.read_sql_query(fetch_query, connection)
