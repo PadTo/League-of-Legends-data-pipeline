@@ -10,6 +10,9 @@ import time
 import functools
 import pandas as pd
 
+# TODO: FUNCTION TO CLEAN TABLES(IDS AND OTHER)
+# TODO: CHECK STAGES 3 AND 4
+
 
 class RiotPipeline:
     def __init__(self, db_save_location: str,
@@ -339,7 +342,7 @@ class RiotPipeline:
               event TEXT,
               type TEXT,
               PRIMARY KEY(matchId, puuId, timestamp),
-              FOREIGN KEY(matchId) REFERENCES Match_Id_Table(matchId) ON DELETE SET NULL);
+              FOREIGN KEY(matchId) REFERENCES Match_Data_Participants_Table(matchId) ON DELETE SET NULL);
               '''
         commit_mesage = "Table 'Match_IDs' created successfully!"
 
@@ -382,6 +385,46 @@ class RiotPipeline:
 
         self.logger.info(f"Fetched Match IDs :\n{sampled_df}")
         return sampled_df[return_col].values
+
+    def _get_majority_tier(self, player_puuids: list, queue_type="RANKED_SOLO_5x5"):
+        """
+        Determines the most common ranked tier among a list of players.
+
+        Args:
+            player_puuids (list): List of player puuids (unique Riot identifiers).
+
+        Returns:
+            str: The tier (e.g., "GOLD", "DIAMOND") with the highest frequency.
+
+        Notes:
+            - Makes an API call per player.
+            - Skips players with missing or unknown tier information.
+        """
+
+        tier_freq_dict = {}
+        for puuid in player_puuids:
+            time.sleep(self.sleep_duration_after_API_call)
+
+            try:
+                tier = self.CallsAPI.get_summoner_tier_from_puuid(
+                    puuid, queue_type)
+
+            except Exception as e:
+                self.logger.error(f"{e}")
+
+            if tier:
+                tier_freq_dict[tier] = tier_freq_dict.get(tier, 0) + 1
+
+            self.logger.info(tier)
+            if tier_freq_dict[tier] >= 6:
+                return tier
+
+            # self.logger.info(tier)
+        return max(tier_freq_dict, key=tier_freq_dict.get)
+
+    def _clean_table_data(self, delete_day)
+
+    # ___COLLECTING DATA___#
 
     @process_decorator
     def _collect_summoner_entries_by_tier(self, tiers=None, divisions=None):
@@ -552,7 +595,7 @@ class RiotPipeline:
 
     @process_decorator
     def _collect_match_id_by_puuid(self):
-        """
+        """ 
         Fetches all puuids from the 'Summoners_Table' and collects corresponding match IDs via the Riot API.
 
         For each summoner puuid:
@@ -633,42 +676,6 @@ class RiotPipeline:
 
                 except sqlite3.Error as e:
                     self.logger.error(f"Database error: {e}")
-
-    def _get_majority_tier(self, player_puuids: list, queue_type="RANKED_SOLO_5x5"):
-        """
-        Determines the most common ranked tier among a list of players.
-
-        Args:
-            player_puuids (list): List of player puuids (unique Riot identifiers).
-
-        Returns:
-            str: The tier (e.g., "GOLD", "DIAMOND") with the highest frequency.
-
-        Notes:
-            - Makes an API call per player.
-            - Skips players with missing or unknown tier information.
-        """
-
-        tier_freq_dict = {}
-        for puuid in player_puuids:
-            time.sleep(self.sleep_duration_after_API_call)
-
-            try:
-                tier = self.CallsAPI.get_summoner_tier_from_puuid(
-                    puuid, queue_type)
-
-            except Exception as e:
-                self.logger.error(f"{e}")
-
-            if tier:
-                tier_freq_dict[tier] = tier_freq_dict.get(tier, 0) + 1
-
-            self.logger.info(tier)
-            if tier_freq_dict[tier] >= 6:
-                return tier
-
-            # self.logger.info(tier)
-        return max(tier_freq_dict, key=tier_freq_dict.get)
 
     @process_decorator
     def _collect_match_data_by_matchId(self):
