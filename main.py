@@ -4,7 +4,6 @@ from pathlib import Path
 import json
 from logging_util.logging_setup import logging_setup
 
-
 if __name__ == "__main__":
 
     folder_path = Path(__file__).parent

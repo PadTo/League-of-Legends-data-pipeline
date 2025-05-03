@@ -11,7 +11,6 @@ import functools
 import pandas as pd
 
 # TODO: FUNCTION TO CLEAN TABLES(IDS AND OTHER)
-# TODO: CHECK STAGES 3 AND 4
 
 
 class RiotPipeline:
@@ -422,7 +421,12 @@ class RiotPipeline:
             # self.logger.info(tier)
         return max(tier_freq_dict, key=tier_freq_dict.get)
 
-    def _clean_table_data(self, delete_day)
+    def _clean_table_data(self, delete_day):
+
+        with self._get_connection(self.database_location_absolute_path) as connection:
+            cursor = connection.cursor()
+
+        pass
 
     # ___COLLECTING DATA___#
 
