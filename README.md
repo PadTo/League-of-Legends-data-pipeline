@@ -67,11 +67,6 @@ League-of-Legends-data-pipeline/
 ![Database Tables Relationships](photos/Database_Tables_Relationships.png)
 
 # 🔁 API Call Workflow
-
-## Overview
-
-This workflow describes fetching and storing League of Legends match data through Riot Games' API.
-
 ![API Call Workflow](photos/API_Call_Workflow.png)
 
 ## Workflow Steps
