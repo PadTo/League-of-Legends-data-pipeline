@@ -18,7 +18,7 @@
 - **Production-Ready**
   - Rate limiting built-in
   - Detailed logging
-  - Input sanitization
+
 
 
 ## 🏗️ Folder Structure
