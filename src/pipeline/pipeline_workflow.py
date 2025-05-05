@@ -69,7 +69,8 @@ class RiotPipeline:
         self.players_per_tier = players_per_tier
         self.matches_per_tier = matches_per_tier
         self.queue_type = "RANKED_SOLO_5x5"
-        self.curr_time = int(time.time()) * 10**3  # UNIX TimeStamp
+        # UNIX TimeStamp expressed in milliseconds
+        self.curr_time = int(time.time()) * 10**3
 
         if day_limit == -1:
             self.day_limit = 12
@@ -421,12 +422,48 @@ class RiotPipeline:
             # self.logger.info(tier)
         return max(tier_freq_dict, key=tier_freq_dict.get)
 
-    def _clean_table_data(self, delete_day):
+    def _clean_table_data(self, clean_tables=[0, 0, 0, 0], delete_summoners_table_data=0):
+        """
+        Deletes data from tables
+
+        The `clean_tables` list determines which tables should be cleaned:
+            - [1, 0, 0, 0] (set to 1 to run, 0 to skip)      | Deletes Match_ID_Table
+            - [0, 1, 0, 0] (set to 1 to run, 0 to skip)      | Deletes Match_Data_Participants_Table
+            - [0, 0, 1, 0] (set to 1 to run, 0 to skip)      | Deletes Match_Data_Teams_Table
+            - [0, 0, 0, 1] (set to 1 to run, 0 to skip)      | Deletes Match_Timeline_Table
+            - [1, 1, 1, 1] | Deletes content in all 4 tables
+        Args:
+            retain_up_to_days (int): limit which determines the maximum allowable time difference between the game played and current time (unix).
+            clean_tables (list): a list of boolean values (0, 1) which determine what tables to delete.
+            delete_summoners_table_data (bool): additional parameter to delete data from Summoners_Table (for extra control).
+
+        Returns:
+            None.
+        """
 
         with self._get_connection(self.database_location_absolute_path) as connection:
             cursor = connection.cursor()
+            delete_queries = [
+                f'''DELETE FROM Match_ID_Table WHERE {self.curr_time} - gameTimeStamp <= {self.day_limit}''',
+                '''DELETE FROM Match_Data_Participants_Table''',
+                '''DELETE FROM Match_Data_Teams_Table''',
+                '''DELETE FROM Match_Timeline_Table'''
+            ]
 
-        pass
+            for pos, del_bool in enumerate(clean_tables):
+                if del_bool == 1:
+                    del_query = delete_queries[pos]
+                    cursor.execute(del_query)
+
+            connection.commit()
+
+            if delete_summoners_table_data == 1:
+
+                del_bool = input(
+                    "Are you sure you want to delete data from Summoners_Table (Y for YES | N for NO)?")
+
+                if del_bool.upper() == "Y":
+                    cursor.execute('''DELETE FROM  Summoners_Table''')
 
     # ___COLLECTING DATA___#
 
