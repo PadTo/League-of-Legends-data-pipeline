@@ -9,5 +9,7 @@
   "batch_insert_limit": 3,
   "players_per_tier": 5,
   "matches_per_tier": 100,
-  "day_limit": -1
+  "day_limit": -1,
+  "clean_tables": [0, 0, 0, 0],
+  "delete_summoners_table_data": 0
 }
