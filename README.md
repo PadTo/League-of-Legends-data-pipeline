@@ -1,22 +1,25 @@
 # 🧩 League of Legends Data Pipeline
+## 🌟 Features
 
-- **Status**: Completed
-- **Purpose**: Automated, configurable data pipeline for fetching, filtering, and storing _League of Legends_ match data using Riot's official API.
-- **Additional Advanced Features to be Added in the Future**:
-  - A class that will include functions to fetch data from the tables based on the desired parameters
+- **Comprehensive Data Collection**
+  - Summoner profiles by tier/division
+  - Match histories & detailed match data
+  - Frame-by-frame timeline events
+- **Intelligent Tier Classification**
+  - Majority voting system with early termination (6+ votes)
+  - Handles rank fluctuations between matches
+- **Configurable Processing**
+  - Selective stage execution
+  - Time-based data filtering
+  - Tier-based sampling
+- **Robust Storage**
+  - SQLite database with 5 normalized tables
+  - Batch inserts with transaction safety
+- **Production-Ready**
+  - Rate limiting built-in
+  - Detailed logging
+  - Input sanitization
 
----
-
-## 🔍 Overview
-
-This repository contains a modular, rate-limited, and well-logged data pipeline built around the [Riot Games API](https://developer.riotgames.com/). It automates the process of:
-
-- Retrieving ranked match data across tiers and roles
-- Filtering relevant events and timelines
-- Storing structured results in a local SQLite database
-- Preparing clean datasets for statistical analysis and machine learning
-
----
 
 ## 🏗️ Folder Structure
 
