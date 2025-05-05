@@ -256,6 +256,24 @@ day_limit:
 - -1 disables this limit and defaults to 12 days.
   """
 
+clean_tables Parameter:
+
+- Description: A list of binary flags (0 or 1) that determines which database tables should have their data deleted.
+- [1, 0, 0, 0]: Deletes data only from Match_ID_Table
+- [0, 1, 0, 0]: Deletes data only from Match_Data_Participants_Table
+- [0, 0, 1, 0]: Deletes data only from Match_Data_Teams_Table
+- [0, 0, 0, 1]: Deletes data only from Match_Timeline_Table
+- [1, 1, 1, 1]: Deletes data from all four tables
+- Note: For Match_ID_Table, deletion is restricted to records older than the specified day_limit.
+
+delete_summoners_table_data Parameter:
+
+- Description: Additional safety-controlled option to delete all data from the Summoners_Table.
+
+- Behavior:
+  - 0 (default): Skips deletion of summoner data
+  - 1: Prompts for confirmation before deleting (requires user to input "Y" to proceed)
+
 ### Run the Main Script
 
 python main.py
