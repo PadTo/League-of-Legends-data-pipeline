@@ -5,7 +5,7 @@
   - Summoner profiles by tier/division
   - Match histories & detailed match data
   - Frame-by-frame timeline events
-- **Intelligent Tier Classification**
+- **Majority Tier Classification**
   - Majority voting system with early termination (6+ votes)
   - Handles rank fluctuations between matches
 - **Configurable Processing**
