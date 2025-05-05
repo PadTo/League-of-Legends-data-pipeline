@@ -252,7 +252,6 @@ day_limit:
 - Description: Restricts data to matches played within the last N days.
 - Example: 30 = only process matches from the last 30 days.
 - -1 disables this limit and defaults to 12 days.
-  """
 
 clean_tables Parameter:
 
