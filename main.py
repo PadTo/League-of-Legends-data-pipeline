@@ -40,4 +40,10 @@ if __name__ == "__main__":
         players_per_tier=players_per_tier,
         matches_per_tier=matches_per_tier)
 
+    clean_response = input(
+        "Do you wish to clean the tables before running the pipeline (Y for YES | N for NO)?\n")
+    if clean_response.upper() == "Y":
+        pipeline._clean_table_data(
+            pipe_config["clean_tables"], pipe_config["delete_summoners_table_data"])
+
     pipeline.start_pipeline()
