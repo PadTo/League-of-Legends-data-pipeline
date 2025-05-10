@@ -380,10 +380,10 @@ class RiotPipeline:
             sampled_df = df_copy.groupby(group_by).sample(
                 frac=samples, replace=False)
         else:
-            self.logger.error("Match ids per tier ARE NEITHER int nor float")
+            self.logger.error(
+                "players_per_tier variable is NEITHER int NOR float \n Check configuration file")
             return None
 
-        self.logger.info(f"Fetched Match IDs :\n{sampled_df}")
         return sampled_df[return_col].values
 
     def _get_majority_tier(self, player_puuids: list, queue_type="RANKED_SOLO_5x5"):
@@ -665,7 +665,6 @@ class RiotPipeline:
 
         data = list()
 
-        self.logger.info(puuid_df)
         if self.players_per_tier != -1:
             puuid_list = self._random_sample_from_df(
                 puuid_df, ["current_tier"], self.players_per_tier, ["puuid"])
@@ -689,11 +688,12 @@ class RiotPipeline:
                 game_time_stamp = match_data.get(
                     "info", 0).get("gameEndTimestamp", 0)
 
-                if self.curr_time - game_time_stamp <= self.day_limit:
+                time_diff = self.curr_time - game_time_stamp
+                if time_diff <= self.day_limit:
                     data.append((match_id, puuid_str, game_time_stamp))
                 else:
                     self.logger.info(
-                        f"I HAVE SKIPPED MATCH ID {game_time_stamp} \n puuid: {puuid} \n Skipping Subsequent Matches")
+                        f"\n Player | puuid: {puuid} \n Subsequent matches are older than {int(time_diff / (24 * 60 * 60 * 10**3))} \n Further matches skipped for this player")
                     break
 
             if count % self.batch_insert_limit == 0 and data:
