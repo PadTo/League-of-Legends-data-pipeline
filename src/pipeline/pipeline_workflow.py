@@ -1039,18 +1039,20 @@ class RiotPipeline:
 
                 cursor = connection.cursor()
                 fetch_query = f'''
-                          WITH match_data_table AS (SELECT DISTINCT
+                          WITH filtered_matches AS (
+                              SELECT DISTINCT
                                   m.matchId,
                                   m.gameTier
                               FROM Match_Data_Participants_Table AS m
                               INNER JOIN Match_ID_Table AS i ON i.matchId = m.matchId
-                              WHERE gameTimeStamp - {self.curr_time} <= {self.day_limit})
+                              WHERE i.gameTimeStamp - {self.curr_time} <= {self.day_limit}
+                          )
                           SELECT
-                              mpd.matchId,
-                              md.gameTier
-                          FROM match_data_table md
-                          RIGHT JOIN Match_Data_Participants_Table AS mpd ON mpd.matchId = md.matchId
-                          WHERE md.matchId IS NULL
+                              fm.matchId,
+                              fm.gameTier
+                          FROM filtered_matches AS fm
+                          LEFT JOIN Match_Timeline_Table AS mtt ON fm.matchId = mtt.matchId
+                          WHERE mtt.matchId IS NULL
                           '''
                 match_ids = cursor.execute(fetch_query).fetchall()
 
@@ -1058,7 +1060,9 @@ class RiotPipeline:
                     "Successfully fetched matchId data from the database participants table ")
 
                 match_ids_df = pd.read_sql_query(fetch_query, connection)
-
+                match_ids_df.to_csv(
+                    r"D:\LoL Analysis Project\notebooks\okok.csv")
+                print(match_ids_df)
             except sqlite3.Error as e:
                 self.logger.error(f"Database error: {e}")
 
