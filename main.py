@@ -1,4 +1,4 @@
-from riot_key_folder.riot_api_key import set_riot_api_key
+from riot_key_folder.riot_api_key import set_riot_api_key, get_riot_api_key
 from pipeline.pipeline_workflow import RiotPipeline
 from pathlib import Path
 import json
@@ -30,8 +30,11 @@ if __name__ == "__main__":
         api_key = input("Input API Key: ")
         set_riot_api_key(api_key=api_key)
 
+    fetched_api_key = get_riot_api_key()
+
     pipeline = RiotPipeline(
         db_save_location=db_save_location,
+        api_key=fetched_api_key,
         stages_to_process=stages_to_process,
         rate_time_limit=rate_limit,
         region=region,
