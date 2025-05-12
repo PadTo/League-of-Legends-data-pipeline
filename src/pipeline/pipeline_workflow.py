@@ -10,11 +10,12 @@ import time
 import functools
 import pandas as pd
 
-# TODO: FUNCTION TO CLEAN TABLES(IDS AND OTHER)
+# TODO: "Handle timeouts, skip match_id's already in the tables"
 
 
 class RiotPipeline:
     def __init__(self, db_save_location: str,
+                 api_key,
                  stages_to_process=(1, 1, 1, 1),
                  rate_time_limit=-1,
                  region=-1,
@@ -23,7 +24,8 @@ class RiotPipeline:
                  batch_insert_limit=-1,
                  players_per_tier=-1,
                  matches_per_tier=-1,
-                 day_limit=-1):
+                 day_limit=-1,
+                 ):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
 
@@ -58,7 +60,7 @@ class RiotPipeline:
           - eventTypesToConsider: A list of event types to be considered for data collection.
           - sleep_duration_after_API_call: A float value representing the time to sleep between API calls based on the rate limit.
         """
-        self.API_key = get_riot_api_key()
+        self.API_key = api_key
         self.stages_to_process = stages_to_process
         self.db_save_location_path = Path(db_save_location)
         self.page_limit = page_limit
@@ -135,7 +137,6 @@ class RiotPipeline:
         """
         Creates all necessary database tables by invoking individual table creation methods.
         """
-        self._create_database()
         self._create_summoner_entries_table()
         self._create_match_ids_table()
         self._create_match_data_teams_table()
@@ -742,17 +743,25 @@ class RiotPipeline:
             with sqlite3.connect(self.database_location_absolute_path) as connection:
                 cursor = connection.cursor()
                 fetch_query = f'''
-                          SELECT
+                          WITH id_table AS (SELECT
                             m.matchId,
                             s.current_tier,
                             m.gameTimeStamp
                           FROM Match_ID_Table AS m
                           INNER JOIN Summoners_table AS s ON s.puuid = m.puuid
-                          WHERE gameTimeStamp - {self.curr_time} <= {self.day_limit}'''
+                          WHERE gameTimeStamp - {self.curr_time} <= {self.day_limit})
+                          SELECT 
+                            tid.matchId,
+                            tid.current_tier,
+                            tid.gameTimeStamp,
+                            mdp.matchId
+                          FROM id_table AS tid
+                          LEFT JOIN Match_Data_Participants_Table AS mdp ON mdp.matchId = tid.matchId
+                          WHERE mdp.matchId IS NULL
+                          '''
 
                 match_ids = cursor.execute(fetch_query).fetchall()
                 match_ids_df = pd.read_sql_query(fetch_query, connection)
-                # print(match_ids_df.head())
 
                 self.logger.info(
                     "Successfully fetched match ids from the database")
