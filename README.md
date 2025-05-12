@@ -1,25 +1,44 @@
 # 🧩 League of Legends Data Pipeline
+
 ## 🌟 Features
 
 - **Comprehensive Data Collection**
+
   - Summoner profiles by tier/division
   - Match histories & detailed match data
   - Frame-by-frame timeline events
+  - Only collects matches within configurable time threshold (default: 12 days)
+
 - **Majority Tier Classification**
-  - Majority voting system with early termination (6+ votes)
+
+  - Majority voting system with early termination (6+ votes) for determining match game tier
   - Handles rank fluctuations between matches
+  - Considers only ranked solo queue (RANKED_SOLO_5x5) matches
+
 - **Configurable Processing**
-  - Selective stage execution
-  - Time-based data filtering
-  - Tier-based sampling
-- **Robust Storage**
-  - SQLite database with 5 normalized tables
+
+  - Selective stage execution (enable/disable any of 4 processing stages)
+  - Time-based data filtering (day_limit parameter controls maximum match age)
+  - Tier-based sampling (players_per_tier and matches_per_tier parameters)
+
+- **SQL Storage**
+
+  - SQLite database with 5 normalized tables:
+    - Summoners_Table
+    - Match_ID_Table
+    - Match_Data_Teams_Table
+    - Match_Data_Participants_Table
+    - Match_Timeline_Table
   - Batch inserts with transaction safety
-- **Production-Ready**
-  - Rate limiting built-in
-  - Detailed logging
+  - Built-in database cleaning functionality
+  - Easy CSV export capability through additional helper class
 
-
+- **Production-Ready Features**
+  - Rate limiting built-in (configurable calls per second)
+  - Detailed logging at all processing stages
+  - API key validation and management
+  - Comprehensive error handling
+  - Configurable batch insert sizes for memory efficiency
 
 ## 🏗️ Folder Structure
 
@@ -67,6 +86,7 @@ League-of-Legends-data-pipeline/
 ![Database Tables Relationships](photos/Database_Tables_Relationships.png)
 
 # 🔁 API Call Workflow
+
 ![API Call Workflow](photos/API_Call_Workflow.png)
 
 ## Workflow Steps
