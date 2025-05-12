@@ -753,8 +753,7 @@ class RiotPipeline:
                           SELECT 
                             tid.matchId,
                             tid.current_tier,
-                            tid.gameTimeStamp,
-                            mdp.matchId
+                            tid.gameTimeStamp
                           FROM id_table AS tid
                           LEFT JOIN Match_Data_Participants_Table AS mdp ON mdp.matchId = tid.matchId
                           WHERE mdp.matchId IS NULL
@@ -1040,18 +1039,26 @@ class RiotPipeline:
 
                 cursor = connection.cursor()
                 fetch_query = f'''
-                          SELECT DISTINCT
-                              m.matchId,
-                              m.gameTier,
-
-                          FROM Match_Data_Participants_Table AS m
-                          INNER JOIN Match_ID_Table AS i ON i.matchId = m.matchId
-                          WHERE gameTimeStamp - {self.curr_time} <= {self.day_limit}'''
+                          WITH match_data_table AS (SELECT DISTINCT
+                                  m.matchId,
+                                  m.gameTier
+                              FROM Match_Data_Participants_Table AS m
+                              INNER JOIN Match_ID_Table AS i ON i.matchId = m.matchId
+                              WHERE gameTimeStamp - {self.curr_time} <= {self.day_limit})
+                          SELECT
+                              mpd.matchId,
+                              md.gameTier
+                          FROM match_data_table md
+                          RIGHT JOIN Match_Data_Participants_Table AS mpd ON mpd.matchId = md.matchId
+                          WHERE md.matchId IS NULL
+                          '''
                 match_ids = cursor.execute(fetch_query).fetchall()
+
                 self.logger.info(
                     "Successfully fetched matchId data from the database participants table ")
 
                 match_ids_df = pd.read_sql_query(fetch_query, connection)
+
             except sqlite3.Error as e:
                 self.logger.error(f"Database error: {e}")
 
@@ -1060,7 +1067,7 @@ class RiotPipeline:
                 match_ids_df, ["gameTier"], self.players_per_tier, ["matchId"])
 
         data_events = []
-        print(len(match_ids))
+
         for iter_, match_id in enumerate(match_ids):
             id = match_id[0]
 
