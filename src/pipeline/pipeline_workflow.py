@@ -1,5 +1,4 @@
 from data_collection.riot_api import RiotApi
-from riot_key_folder.riot_api_key import get_riot_api_key
 import sqlite3
 from pathlib import Path
 import datetime
@@ -9,6 +8,7 @@ from pathlib import Path
 import time
 import functools
 import pandas as pd
+from processing.LoLDatabaseQuery import DatabaseQuery
 
 
 class RiotPipeline:
@@ -23,6 +23,7 @@ class RiotPipeline:
                  players_per_tier=-1,
                  matches_per_tier=-1,
                  day_limit=-1,
+                 data_save_location=None
                  ):
         """
         Initializes the class with necessary configurations for data collection, logging, and API interaction.
@@ -71,6 +72,7 @@ class RiotPipeline:
         self.queue_type = "RANKED_SOLO_5x5"
         # UNIX TimeStamp expressed in milliseconds
         self.curr_time = int(time.time()) * 10**3
+        self.data_save_location = data_save_location
 
         if day_limit == -1:
             self.day_limit = 12
@@ -1184,6 +1186,14 @@ class RiotPipeline:
                 except sqlite3.Error as e:
                     self.logger.error(f"Database error: {e}")
 
+    @process_decorator
+    def _save_data_to_csv(self):
+        DBQ = DatabaseQuery(
+            self.database_location_absolute_path, self.data_save_location)
+        DBQ.get_match_participant_data_by_tier(save=True)
+        DBQ.get_match_teams_data(save=True)
+        DBQ.get_match_timeline_data_by_tier(save=True)
+
     def _collect_data(self):
         """
         Collects various data for the project, including match data and timeline data.
@@ -1206,6 +1216,9 @@ class RiotPipeline:
         # Step 4: Collect Match Timeline
         self._collect_match_timeline_by_matchId(
             activate=self.stages_to_process[3])
+
+        self._save_data_to_csv(
+            activate=self.stages_to_process[4])
 
     def start_pipeline(self):
         """
