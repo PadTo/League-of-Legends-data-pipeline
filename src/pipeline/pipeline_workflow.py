@@ -692,7 +692,7 @@ class RiotPipeline:
                     data.append((match_id, puuid_str, game_time_stamp))
                 else:
                     self.logger.info(
-                        f"\n Player | puuid: {puuid} \n Subsequent matches are older than {int(time_diff / (24 * 60 * 60 * 10**3))} \n Further matches skipped for this player")
+                        f"\n Player | puuid: {puuid} \n Subsequent matches are older than {int(time_diff / (24 * 60 * 60 * 10**3))} days \n Further matches skipped for this player")
                     break
 
             if count % self.batch_insert_limit == 0 and data:
