@@ -140,9 +140,15 @@ League-of-Legends-data-pipeline/
   - Filter application and database storage
 - Enables batch collection and control over sample size and rank tier
 
-### 🧼 Filtering Module (IN PROGRESS)
+### LoL Database Query Tool
+A Python class for querying League of Legends match data from an SQLite database and exporting to CSV.
 
-- TBD
+- Query three types of match data:
+  - Participant data
+  - Team data 
+  - Timeline data
+- Filter by game tier (e.g., "CHALLENGER", "BRONZE")
+- Export results to CSV
 
 ### 🧱 Database Integration (`riot_data_database.db`)
 
