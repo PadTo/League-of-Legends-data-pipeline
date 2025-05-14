@@ -1,12 +1,16 @@
 import requests
 import logging
+import time
+import numpy as np
+import random as rand
 
 
 class StatusCodeError(Exception):
-    def __init__(self, status_code, message):
+    """Custom exception for handling HTTP status code errors."""
+
+    def __init__(self, status_code, message=""):
+        super().__init__(f"HTTP {status_code}: {message}")
         self.status_code = status_code
-        self.message = message
-        super().__init__(f"Response Code {status_code}: {message}")
 
 
 class RiotApi:
@@ -42,7 +46,7 @@ class RiotApi:
             Fetches match IDs for a given PuuID, based on the game type and number of matches.
     """
 
-    def __init__(self, riot_api_key, base_url_europe_region=-1):
+    def __init__(self, riot_api_key, base_url_europe_region=-1, max_retries=6):
         self.riot_api_key = riot_api_key
 
         if base_url_europe_region == -1:
@@ -53,6 +57,7 @@ class RiotApi:
         self.base_url_europe = "https://europe.api.riotgames.com"
         self.request_header = {"X-Riot-Token": self.riot_api_key}
         self.logger = logging.getLogger("RiotApi_Log")
+        self.max_retries = max_retries
 
     def _check_if_key_valid(self):
         url = "".join(
@@ -69,6 +74,14 @@ class RiotApi:
         else:
             self.logger.error(response_json.get("status")['message'])
             return False
+
+    def exponential_back_off(self, attempt, base=np.exp, cap=60, jitter=True):
+
+        raw_wait = min(cap, base ** attempt)
+        if jitter:
+            return rand.uniform(0, raw_wait)
+
+        return raw_wait
 
     def status_response_exception(self, status_code) -> bool:
         """
@@ -126,9 +139,22 @@ class RiotApi:
         url = "".join([self.base_url_euw1, summoner_entries_endpoint])
 
         try:
-            print(f"\nFetching {queue} {tier} Tier Summoner ID's...")
-            league_request = requests.get(url, headers=self.request_header)
-            status_code = league_request.status_code
+            self.logger.info(
+                f"\nFetching {queue} {tier} Tier Summoner ID's...")
+
+            for attempt in range(self.max_retries):
+                league_request = requests.get(url, headers=self.request_header)
+                status_code = league_request.status_code
+
+                if str(status_code)[0] == '5':
+                    wait_time = self.exponential_back_off(attempt)
+                    time.sleep(wait_time)
+                    self.logger(
+                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+
+                if status_code == 200:
+                    break
+
             self.status_response_exception(status_code)
 
             league_request_json = league_request.json()
@@ -164,10 +190,21 @@ class RiotApi:
             [self.base_url_euw1, summoner_league_entries_endpoint, puuid_str])
 
         try:
-            league_request = requests.get(url, headers=self.request_header)
-            self.status_response_exception(league_request.status_code)
 
-            league_data = league_request.json()
+            for attempt in range(self.max_retries):
+                response = requests.get(url, headers=self.request_header)
+                status_code = response.status_code
+                if str(status_code)[0] == '5':
+                    wait_time = self.exponential_back_off(attempt)
+                    time.sleep(wait_time)
+                    self.logger(
+                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+
+                if status_code == 200:
+                    break
+            self.status_response_exception(response.status_code)
+
+            league_data = response.json()
             tier = None
             if not league_data:
                 return "UNRANKED"
@@ -183,7 +220,7 @@ class RiotApi:
             raise e
         except Exception as e:
             self.logger.error(e)
-            self.logger.info(league_request.json())
+            self.logger.info(response.json())
             raise e
 
         return tier
@@ -208,8 +245,18 @@ class RiotApi:
         try:
             self.logger.info(
                 f"\nFetching PuuId of Summoner {summonerId[:5]}...")
-            response = requests.get(url=url, headers=self.request_header)
-            status_code = response.status_code
+
+            for attempt in range(self.max_retries):
+                response = requests.get(url, headers=self.request_header)
+                status_code = response.status_code
+                if str(status_code)[0] == '5':
+                    wait_time = self.exponential_back_off(attempt)
+                    time.sleep(wait_time)
+                    self.logger(
+                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+
+                if status_code == 200:
+                    break
             self.status_response_exception(status_code)
 
             puuId = response.json()["puuid"]
@@ -244,9 +291,20 @@ class RiotApi:
         # print(url)
 
         try:
-            response = requests.get(
-                url, params=matchId_parameters, headers=self.request_header)
-            status_code = response.status_code
+
+            for attempt in range(self.max_retries):
+                response = requests.get(
+                    url, params=matchId_parameters, headers=self.request_header)
+
+                status_code = response.status_code
+                if str(status_code)[0] == '5':
+                    wait_time = self.exponential_back_off(attempt)
+                    time.sleep(wait_time)
+                    self.logger(
+                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+
+                if status_code == 200:
+                    break
             self.status_response_exception(status_code)
 
             match_id = response.json()
@@ -276,8 +334,18 @@ class RiotApi:
         url = "".join([self.base_url_europe, match_data_endpoint])
 
         try:
-            response = requests.get(url, headers=self.request_header)
-            status_code = response.status_code
+            for attempt in range(self.max_retries):
+                response = requests.get(url, headers=self.request_header)
+
+                status_code = response.status_code
+                if str(status_code)[0] == '5':
+                    wait_time = self.exponential_back_off(attempt)
+                    time.sleep(wait_time)
+                    self.logger(
+                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+
+                if status_code == 200:
+                    break
             self.status_response_exception(status_code)
 
             match_data = response.json()
@@ -306,8 +374,18 @@ class RiotApi:
         url = "".join([self.base_url_europe, match_timeline_endpoint])
 
         try:
-            response = requests.get(url, headers=self.request_header)
-            status_code = response.status_code
+            for attempt in range(self.max_retries):
+                response = requests.get(url, headers=self.request_header)
+                status_code = response.status_code
+                if str(status_code)[0] == '5':
+                    wait_time = self.exponential_back_off(attempt)
+                    time.sleep(wait_time)
+                    self.logger(
+                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+
+                if status_code == 200:
+                    break
+
             self.status_response_exception(status_code)
 
             match_timeline = response.json()
