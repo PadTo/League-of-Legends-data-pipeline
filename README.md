@@ -199,7 +199,10 @@ EXAMPLE:
   "batch_insert_limit": 3,
   "players_per_tier": 5,
   "matches_per_tier": 100,
-  "day_limit": 12
+  "day_limit": 12,
+  "clean_tables": [0, 0, 0, 0],
+  "delete_summoners_table_data": 0,
+  "data_save_path": "YOUR/DESIRED/DATA/PATH"
 }
 </pre>
 
@@ -219,14 +222,21 @@ logging_configuration_filepath:
 
 stages_to_process:
 
-- Description: A list of 4 binary values [1, 1, 1, 1] to toggle pipeline stages.
+- Description: A list of 5 binary values [1, 1, 1, 1, 1] to toggle pipeline stages.
   - 1 = run the stage
   - 0 = skip the stage
-- Example: [1, 0, 0, 1] runs stages 1 and 4.
+- Example: [1, 0, 0, 1, 0] runs stages 1 and 4.
+- Stage Description:
+  - Stage 1 | Collects summoner entries by tier
+  - Stage 2 | Collects match IDs by puuid
+  - Stage 3 | Collects match data by match ID 
+  - Stage 4 | Collects match timeline data by match ID
+  - Stage 5 | Saves the data  
 - Dependency rules:
   - Stage 2 depends on stage 1
   - Stage 3 depends on stage 2
   - Stage 4 depends on stage 3
+  
 
 rate_limit:
 
@@ -292,6 +302,10 @@ delete_summoners_table_data Parameter:
   - 0 (default): Skips deletion of summoner data
   - 1: Prompts for confirmation before deleting (requires user to input "Y" to proceed)
 
+data_save_path Parameter:
+
+- Description: Saves the data to a specified location
+  
 ### Run the Main Script
 
 python main.py
