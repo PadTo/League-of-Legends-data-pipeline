@@ -8,7 +8,7 @@
   - Match histories & detailed match data
   - Frame-by-frame timeline events
   - Only collects matches within configurable time threshold (default: 12 days)
-  - Implemented full exponential back-off for failed API call requests
+  - Implemented full exponential back-off for failed API call requests with status code 5**
 
 - **Majority Tier Classification**
 
