@@ -10,8 +10,6 @@ import time
 import functools
 import pandas as pd
 
-# TODO: "Handle timeouts, skip match_id's already in the tables"
-
 
 class RiotPipeline:
     def __init__(self, db_save_location: str,
@@ -1060,9 +1058,6 @@ class RiotPipeline:
                     "Successfully fetched matchId data from the database participants table ")
 
                 match_ids_df = pd.read_sql_query(fetch_query, connection)
-                match_ids_df.to_csv(
-                    r"D:\LoL Analysis Project\notebooks\okok.csv")
-                print(match_ids_df)
             except sqlite3.Error as e:
                 self.logger.error(f"Database error: {e}")
 
@@ -1076,6 +1071,7 @@ class RiotPipeline:
             id = match_id[0]
 
             data = self.CallsAPI.get_match_timestamps_from_matcId(id)
+            time.sleep(self.sleep_duration_after_API_call)
 
             participant_ids = dict()
             participant_ids[0] = "Minion"
