@@ -149,7 +149,7 @@ class RiotApi:
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
                     time.sleep(wait_time)
-                    self.logger(
+                    self.logger.info(
                         f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
 
                 if status_code == 200:
@@ -197,7 +197,7 @@ class RiotApi:
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
                     time.sleep(wait_time)
-                    self.logger(
+                    self.logger.info(
                         f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
 
                 if status_code == 200:
@@ -252,7 +252,7 @@ class RiotApi:
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
                     time.sleep(wait_time)
-                    self.logger(
+                    self.logger.info(
                         f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
 
                 if status_code == 200:
@@ -300,7 +300,7 @@ class RiotApi:
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
                     time.sleep(wait_time)
-                    self.logger(
+                    self.logger.info(
                         f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
 
                 if status_code == 200:
@@ -341,7 +341,7 @@ class RiotApi:
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
                     time.sleep(wait_time)
-                    self.logger(
+                    self.logger.info(
                         f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
 
                 if status_code == 200:
@@ -380,7 +380,7 @@ class RiotApi:
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
                     time.sleep(wait_time)
-                    self.logger(
+                    self.logger.info(
                         f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
 
                 if status_code == 200:
