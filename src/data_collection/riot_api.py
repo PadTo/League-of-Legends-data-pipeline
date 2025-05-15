@@ -75,7 +75,7 @@ class RiotApi:
             self.logger.error(response_json.get("status")['message'])
             return False
 
-    def exponential_back_off(self, attempt, base=np.exp, cap=60, jitter=True):
+    def exponential_back_off(self, attempt, base=np.e, cap=60, jitter=True):
 
         raw_wait = min(cap, base ** attempt)
         if jitter:
