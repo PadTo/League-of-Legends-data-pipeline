@@ -14,7 +14,7 @@ from processing.LoLDatabaseQuery import DatabaseQuery
 class RiotPipeline:
     def __init__(self, db_save_location: str,
                  api_key,
-                 stages_to_process=(1, 1, 1, 1),
+                 stages_to_process=(1, 1, 1, 1, 1),
                  rate_time_limit=-1,
                  region=-1,
                  page_limit=-1,
@@ -110,7 +110,7 @@ class RiotPipeline:
             rate_time_limit[0]
 
         for value in self.stages_to_process:
-            if value not in (0, 1) or len(self.stages_to_process) > 4:
+            if value not in (0, 1) or len(self.stages_to_process) > 5:
                 self.logger.error("Stage to process has been incorrectly set!")
                 raise ValueError(
                     "Stages to process must be a tuple consisting ONLY of 0 or 1's")
