@@ -17,7 +17,7 @@ class RiotApi:
     """
     A class to interact with the Riot Games API.
 
-    This class provides methods to fetch data related to summoner information, 
+    This class provides methods to fetch data related to summoner information,
     tier and division, match IDs, and other game-related data from the Riot API.
 
     Attributes:
@@ -138,38 +138,37 @@ class RiotApi:
         summoner_entries_endpoint = f"/lol/league-exp/v4/entries/{queue}/{tier}/{division}?page={pages}"
         url = "".join([self.base_url_euw1, summoner_entries_endpoint])
 
-        try:
-            self.logger.info(
-                f"\nFetching {queue} {tier} Tier Summoner ID's...")
-
-            for attempt in range(self.max_retries):
-                league_request = requests.get(url, headers=self.request_header)
-                status_code = league_request.status_code
+        for attempt in range(self.max_retries):
+            try:
+                response = requests.get(
+                    url, headers=self.request_header, timeout=10)
+                status_code = response.status_code
 
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
-                    time.sleep(wait_time)
                     self.logger.info(
-                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+                        f"Server error {status_code} on summoner entries (Attempt {attempt+1}). Retrying in {wait_time}s.")
+                    time.sleep(wait_time)
+                    continue
 
                 if status_code == 200:
-                    break
+                    return response.json()
 
-            self.status_response_exception(status_code)
+                break  # Exit loop if non-5xx error and not 200
 
-            league_request_json = league_request.json()
-            return league_request_json
+            except (requests.exceptions.ChunkedEncodingError, requests.exceptions.RequestException) as e:
+                wait_time = self.exponential_back_off(attempt)
+                self.logger.warning(
+                    f"{type(e).__name__} on summoner entries (Attempt {attempt+1}). Retrying in {wait_time}s.")
+                time.sleep(wait_time)
+                continue
 
-        except StatusCodeError as e:
-            self.logger.error(f"Error fetching summoner entries: {e}")
+            except Exception as e:
+                self.logger.error(
+                    f"Unexpected error fetching summoner entries: {e}", exc_info=True)
+                raise e
 
-            raise e
-        except Exception as e:
-            self.logger.error(
-                f"Unexpected error fetching summoner entries: {e}")
-            raise e
-        finally:
-            return league_request_json
+        self.status_response_exception(response.status_code)
 
     def get_summoner_tier_from_puuid(self, puuid: str, queue_type="RANKED_SOLO_5x5"):
         """
@@ -189,41 +188,49 @@ class RiotApi:
         url = "".join(
             [self.base_url_euw1, summoner_league_entries_endpoint, puuid_str])
 
-        try:
-
-            for attempt in range(self.max_retries):
-                response = requests.get(url, headers=self.request_header)
+        for attempt in range(self.max_retries):
+            try:
+                response = requests.get(
+                    url, headers=self.request_header, timeout=10)
                 status_code = response.status_code
+
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
-                    time.sleep(wait_time)
                     self.logger.info(
-                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+                        f"Server error {status_code} on tier request (Attempt {attempt+1}). Retrying in {wait_time}s.")
+                    time.sleep(wait_time)
+                    continue
 
                 if status_code == 200:
-                    break
-            self.status_response_exception(response.status_code)
+                    league_data = response.json()
+                    if not league_data:
+                        return "UNRANKED"
 
-            league_data = response.json()
-            tier = None
-            if not league_data:
-                return "UNRANKED"
-            else:
-                for entry in league_data:
-                    if entry.get("queueType", 0) == queue_type:
-                        tier = entry.get("tier", "")
-            if tier == None:
-                tier = "UNRANKED"
+                    for entry in league_data:
+                        if entry.get("queueType", "") == queue_type:
+                            return entry.get("tier", "UNRANKED")
 
-        except StatusCodeError as e:
-            self.logger.error(e)
-            raise e
-        except Exception as e:
-            self.logger.error(e)
-            self.logger.info(response.json())
-            raise e
+                    return "UNRANKED"
 
-        return tier
+                break
+
+            except (requests.exceptions.ChunkedEncodingError, requests.exceptions.RequestException) as e:
+                wait_time = self.exponential_back_off(attempt)
+                self.logger.warning(
+                    f"{type(e).__name__} on tier request (Attempt {attempt+1}). Retrying in {wait_time}s.")
+                time.sleep(wait_time)
+                continue
+
+            except Exception as e:
+                self.logger.error(
+                    f"Unexpected error fetching summoner tier: {e}", exc_info=True)
+                try:
+                    self.logger.info(response.json())
+                except:
+                    pass
+                raise e
+
+        self.status_response_exception(response.status_code)
 
     def get_puuId_from_summonerId(self, summonerId):
         """
@@ -242,31 +249,37 @@ class RiotApi:
         puuId_endpoint = f"/lol/summoner/v4/summoners/{encryptedSummonerId}"
         url = "".join([self.base_url_euw1, puuId_endpoint])
 
-        try:
-            self.logger.info(
-                f"\nFetching PuuId of Summoner {summonerId[:5]}...")
-
-            for attempt in range(self.max_retries):
-                response = requests.get(url, headers=self.request_header)
+        for attempt in range(self.max_retries):
+            try:
+                response = requests.get(
+                    url, headers=self.request_header, timeout=10)
                 status_code = response.status_code
+
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
-                    time.sleep(wait_time)
                     self.logger.info(
-                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+                        f"Server error {status_code} on PuuID request (Attempt {attempt+1}). Retrying in {wait_time}s.")
+                    time.sleep(wait_time)
+                    continue
 
                 if status_code == 200:
-                    break
-            self.status_response_exception(status_code)
+                    return response.json()["puuid"]
 
-            puuId = response.json()["puuid"]
-            return puuId
-        except StatusCodeError as e:
-            self.logger.error(f"Error fetching PuuID: {e}")
-            raise e
-        except Exception as e:
-            self.logger.error(f"Unexpected error fetching PuuId: {e}")
-            raise e
+                break
+
+            except (requests.exceptions.ChunkedEncodingError, requests.exceptions.RequestException) as e:
+                wait_time = self.exponential_back_off(attempt)
+                self.logger.warning(
+                    f"{type(e).__name__} on PuuID request (Attempt {attempt+1}). Retrying in {wait_time}s.")
+                time.sleep(wait_time)
+                continue
+
+            except Exception as e:
+                self.logger.error(
+                    f"Unexpected error fetching PuuId: {e}", exc_info=True)
+                raise e
+
+        self.status_response_exception(response.status_code)
 
     def get_matchIds_from_puuId(self, puuId: str, game_type="ranked", start=0, count=100):
         """
@@ -290,33 +303,37 @@ class RiotApi:
         url = "".join([self.base_url_europe, matchId_endpoint])
         # print(url)
 
-        try:
-
-            for attempt in range(self.max_retries):
+        for attempt in range(self.max_retries):
+            try:
                 response = requests.get(
-                    url, params=matchId_parameters, headers=self.request_header)
-
+                    url, params=matchId_parameters, headers=self.request_header, timeout=10)
                 status_code = response.status_code
+
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
-                    time.sleep(wait_time)
                     self.logger.info(
-                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+                        f"Server error {status_code} on match ID request (Attempt {attempt+1}). Retrying in {wait_time}s.")
+                    time.sleep(wait_time)
+                    continue
 
                 if status_code == 200:
-                    break
-            self.status_response_exception(status_code)
+                    return response.json()
 
-            match_id = response.json()
-            # print(match_id)
-            return match_id
+                break
 
-        except StatusCodeError as e:
-            self.logger.error(f"Error fetching matchId: {e}")
-            raise e
-        except Exception as e:
-            self.logger.error(f"Unexpected error fetching matchId: {e}")
-            raise e
+            except (requests.exceptions.ChunkedEncodingError, requests.exceptions.RequestException) as e:
+                wait_time = self.exponential_back_off(attempt)
+                self.logger.warning(
+                    f"{type(e).__name__} on match ID request (Attempt {attempt+1}). Retrying in {wait_time}s.")
+                time.sleep(wait_time)
+                continue
+
+            except Exception as e:
+                self.logger.error(
+                    f"Unexpected error fetching matchId: {e}", exc_info=True)
+                raise e
+
+        self.status_response_exception(response.status_code)
 
     def get_match_data_from_matchId(self, matchId):
         """Retrieves detailed match data for a specific match ID.
@@ -333,30 +350,51 @@ class RiotApi:
         match_data_endpoint = f"/lol/match/v5/matches/{matchId}"
         url = "".join([self.base_url_europe, match_data_endpoint])
 
-        try:
-            for attempt in range(self.max_retries):
-                response = requests.get(url, headers=self.request_header)
+        for attempt in range(self.max_retries):
+            try:
+                response = requests.get(
+                    url, headers=self.request_header, timeout=10)
 
                 status_code = response.status_code
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
-                    time.sleep(wait_time)
                     self.logger.info(
-                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+                        f"Server error (Status Code: {status_code}). Attempt {attempt+1}/{self.max_retries}. Retrying in {wait_time}s..."
+                    )
+                    time.sleep(wait_time)
+                    continue
 
                 if status_code == 200:
-                    break
-            self.status_response_exception(status_code)
+                    self.logger.debug(
+                        f"Successful response for matchId: {matchId}")
+                    match_data = response.json()
+                    return match_data
 
-            match_data = response.json()
+                # Break on non-5xx response (like 4xx) and let the error handler raise
+                break
 
-            return match_data
-        except StatusCodeError as e:
-            self.logger.error("Error fetching match data")
-            raise e
-        except Exception as e:
-            self.logger.error("Unexpected error fetching match data")
-            raise e
+            except requests.exceptions.ChunkedEncodingError as ce:
+                wait_time = self.exponential_back_off(attempt)
+                self.logger.warning(
+                    f"ChunkedEncodingError on attempt {attempt+1}/{self.max_retries}. Retrying in {wait_time}s..."
+                )
+                time.sleep(wait_time)
+                continue
+
+            except requests.exceptions.RequestException as re:
+                wait_time = self.exponential_back_off(attempt)
+                self.logger.warning(
+                    f"RequestException: {re} on attempt {attempt+1}/{self.max_retries}. Retrying in {wait_time}s..."
+                )
+                time.sleep(wait_time)
+                continue
+
+            except Exception as e:
+                self.logger.error(
+                    "Unexpected error fetching match data", exc_info=True)
+                raise e
+        # If it gets here, either it failed all retries or got a non-200 response
+        self.status_response_exception(status_code)
 
     def get_match_timestamps_from_matcId(self, matchId):
         """Fetches match timeline for a specific match ID.
@@ -373,26 +411,50 @@ class RiotApi:
         match_timeline_endpoint = f"/lol/match/v5/matches/{matchId}/timeline"
         url = "".join([self.base_url_europe, match_timeline_endpoint])
 
-        try:
-            for attempt in range(self.max_retries):
-                response = requests.get(url, headers=self.request_header)
+        for attempt in range(self.max_retries):
+            try:
+                response = requests.get(
+                    url, headers=self.request_header, timeout=10)
                 status_code = response.status_code
+
                 if str(status_code)[0] == '5':
                     wait_time = self.exponential_back_off(attempt)
-                    time.sleep(wait_time)
                     self.logger.info(
-                        f"Status Code: {status_code} \n Attempt: {attempt}\n Retrying... \n ")
+                        f"Server error while fetching timeline (Status Code: {status_code}). "
+                        f"Attempt {attempt+1}/{self.max_retries}. Retrying in {wait_time}s..."
+                    )
+                    time.sleep(wait_time)
+                    continue
 
                 if status_code == 200:
-                    break
+                    match_timeline = response.json()
+                    return match_timeline
 
-            self.status_response_exception(status_code)
+                # For non-5xx status, break and raise
+                break
 
-            match_timeline = response.json()
-            return match_timeline
-        except StatusCodeError as e:
-            self.logger.error(f"Error fetching match timeline: {e}")
-            raise e
-        except Exception as e:
-            self.logger.error(f"Unexpected error fetching match timeline: {e}")
-            raise e
+            except requests.exceptions.ChunkedEncodingError as ce:
+                wait_time = self.exponential_back_off(attempt)
+                self.logger.warning(
+                    f"ChunkedEncodingError on timeline request (attempt {attempt+1}/{self.max_retries}). "
+                    f"Retrying in {wait_time}s..."
+                )
+                time.sleep(wait_time)
+                continue
+
+            except requests.exceptions.RequestException as re:
+                wait_time = self.exponential_back_off(attempt)
+                self.logger.warning(
+                    f"RequestException on timeline request: {re} (attempt {attempt+1}/{self.max_retries}). "
+                    f"Retrying in {wait_time}s..."
+                )
+                time.sleep(wait_time)
+                continue
+
+            except Exception as e:
+                self.logger.error(
+                    f"Unexpected error fetching match timeline", exc_info=True)
+                raise e
+
+        # If retries failed or received non-200 response
+        self.status_response_exception(status_code)
