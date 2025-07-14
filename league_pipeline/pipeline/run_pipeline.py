@@ -1,4 +1,4 @@
-from data_collection.riot_api import RiotApi
+from league_pipeline.riot_api.riot_client import RiotApi
 import sqlite3
 from pathlib import Path
 import datetime
@@ -8,7 +8,7 @@ from pathlib import Path
 import time
 import functools
 import pandas as pd
-from processing.LoLDatabaseQuery import DatabaseQuery
+from league_pipeline.db.db_interface import DatabaseQuery
 
 
 class RiotPipeline:
@@ -106,8 +106,7 @@ class RiotPipeline:
         if batch_insert_limit == -1:
             batch_insert_limit = 1000
 
-        self.sleep_duration_after_API_call = rate_time_limit[1] / \
-            rate_time_limit[0]
+        self.sleep_duration_after_API_call = rate_time_limit[1] / rate_time_limit[0] # type: ignore
 
         for value in self.stages_to_process:
             if value not in (0, 1) or len(self.stages_to_process) > 5:

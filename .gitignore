@@ -3,3 +3,5 @@ api_key_loc_temp.json
 *.pdf
 *.log
 *.db
+*.egg-info
+__pycache__

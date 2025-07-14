@@ -1,5 +1,0 @@
-analysis
-data_collection
-processing
-riot_key_folder
-visualization
