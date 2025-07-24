@@ -1,5 +1,8 @@
 from enum import Enum
 
+class BaseEndpoint(Enum):
+    BASE_RIOT_URL = "https://{region}.api.riotgames.com"
+
 class AccountEndpoint(Enum):
     BY_RIOT_ID = "/riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}"
     BY_PUUID = "/riot/account/v1/accounts/by-puuid/{puuid}"
@@ -17,3 +20,6 @@ class LeagueEndpoint(Enum):
 class MatchEndpoint(Enum):
     IDS_BY_PUUID = "/lol/match/v5/matches/by-puuid/{puuid}/ids"
     BY_ID = "/lol/match/v5/matches/{matchId}"
+
+
+print(MatchEndpoint.BY_ID.value.format(matchId = "ok"))
