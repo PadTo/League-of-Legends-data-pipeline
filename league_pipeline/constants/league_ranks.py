@@ -17,3 +17,6 @@ class RankedDivision(Enum):
     II = "II"
     III = "III"
     IV = "IV"
+
+class RankedQueue(Enum):
+    RANKED_SOLO_5x5 = "RANKED_SOLO_5x5"
