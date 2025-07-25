@@ -29,7 +29,7 @@ def async_api_call_error_wrapper(function):
                     if retry:
                         wait_time = exponential_back_off(Rates.EXPONENTIAL_BACK_OFF_BASE_VALUE.value,
                                                          Rates.MAX_WAITING_TIME_BETWEEN_RETRIES.value,
-                                                         attempt = attempt)
+                                                         attempt = attempt, jitter=Rates.JITTER.value)
                         await asyncio.sleep(wait_time)
                     else:
                         raise
@@ -44,7 +44,7 @@ def async_api_call_error_wrapper(function):
                     if retry:
                         wait_time = exponential_back_off(Rates.EXPONENTIAL_BACK_OFF_BASE_VALUE.value,
                                                             Rates.MAX_WAITING_TIME_BETWEEN_RETRIES.value,
-                                                            attempt = attempt)
+                                                            attempt = attempt, jitter=Rates.JITTER.value)
                         await asyncio.sleep(wait_time)
                     else:
                         raise
@@ -59,7 +59,7 @@ def async_api_call_error_wrapper(function):
                 if retry:
                     wait_time = exponential_back_off(Rates.EXPONENTIAL_BACK_OFF_BASE_VALUE.value,
                                                         Rates.MAX_WAITING_TIME_BETWEEN_RETRIES.value,
-                                                        attempt = attempt)
+                                                        attempt = attempt, jitter=Rates.JITTER.value)
                     await asyncio.sleep(wait_time)
                 else:
                     raise
@@ -75,7 +75,7 @@ def async_api_call_error_wrapper(function):
                 if retry:
                     wait_time = exponential_back_off(Rates.EXPONENTIAL_BACK_OFF_BASE_VALUE.value,
                                                         Rates.MAX_WAITING_TIME_BETWEEN_RETRIES.value,
-                                                        attempt = attempt)
+                                                        attempt = attempt, jitter= Rates.JITTER.value)
                     await asyncio.sleep(wait_time)
                 else:
                     raise
