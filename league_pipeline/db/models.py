@@ -1,27 +1,28 @@
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import String, Integer, Boolean, Float, ForeignKey, create_engine
+from league_pipeline.constants.database_constants import DatabaseTableNames, DatabaseName, DatabaseConfiguration
 
 class Base(DeclarativeBase):
     pass
 
 class Summoners(Base):
-    __tablename__ = "Summoners"
-    league_id: Mapped[str] = mapped_column("leagueId", String, primary_key=True)
+    __tablename__ = DatabaseTableNames.SUMMONERS_TABLE.value
+    puuid: Mapped[str] = mapped_column("puuId", String, primary_key=True)
     current_tier: Mapped[str] = mapped_column("currentTier", String)
     current_division: Mapped[str] = mapped_column("currentDivision", String)
     date_collected: Mapped[str] = mapped_column("dateCollected", String)
 
 
 class MatchIDs(Base):
-    __tablename__ = "Match_ID_Table"
+    __tablename__ = DatabaseTableNames.MATCH_IDS_TABLE.value
     match_id: Mapped[str] = mapped_column("matchId", String, primary_key=True)
-    leagueid: Mapped[str] = mapped_column("leagueId", ForeignKey("Summoners.leagueId"), nullable=True)
+    puuid: Mapped[str] = mapped_column("puuId", ForeignKey("Summoners.puuId"), nullable=True)
     game_timestamp: Mapped[int] = mapped_column("gameTimeStamp", Integer)
 
 
 class MatchDataTeams(Base):
-    __tablename__ = "Match_Data_Teams_Table"
+    __tablename__ = DatabaseTableNames.MATCH_DATA_TEAMS_TABLE.value
     
     match_id: Mapped[str] = mapped_column("matchId", ForeignKey("Match_ID_Table.matchId", ondelete="SET NULL"), primary_key=True)
     team_id: Mapped[int] = mapped_column("teamId", Integer, primary_key=True)
@@ -40,9 +41,9 @@ class MatchDataTeams(Base):
 
 
 class MatchDataParticipants(Base):
-    __tablename__ = "Match_Data_Participants_Table"
+    __tablename__ = DatabaseTableNames.MATCH_DATA_PARTICIPANTS_TABLE.value
 
-    league_id: Mapped[str] = mapped_column("leagueId", String, primary_key=True)
+    puuid: Mapped[str] = mapped_column("puuId", String, primary_key=True)
     match_id: Mapped[str] = mapped_column("matchId", ForeignKey("Match_ID_Table.matchId", ondelete="CASCADE"), primary_key=True)
     team_id: Mapped[int] = mapped_column("teamId", Integer)
     game_tier: Mapped[str] = mapped_column("gameTier", String)
@@ -93,9 +94,9 @@ class MatchDataParticipants(Base):
 
 
 class MatchTimeline(Base):
-    __tablename__ = "Match_Timeline_Table"
+    __tablename__ = DatabaseTableNames.MATCH_TIMELINE_TABLE.value
     match_id: Mapped[str] = mapped_column("matchId", ForeignKey("Match_Data_Participants_Table.matchId", ondelete="SET NULL"), primary_key=True)
-    league_id: Mapped[str] = mapped_column("leagueId", String, primary_key=True)
+    puuid: Mapped[str] = mapped_column("puuId", String, primary_key=True)
     timestamp: Mapped[int] = mapped_column("timestamp", Integer, primary_key=True)
 
     team_id: Mapped[str] = mapped_column("teamId", String)
@@ -109,11 +110,10 @@ class MatchTimeline(Base):
   
 class DataBase:
     def __init__(self, location: str):
-        self.url = r"sqlite+pysqlite:///" + f"{location}" + r"\database.db"
-
-        # dialect+driver://username:password@host:port/database
+        # self.url = "sqlite+pysqlite:///" + f"{location}" + f"\\{DatabaseName.DATABASE_NAME.value}.db"
+        self.url = DatabaseConfiguration.url.value.format(location=location, name=DatabaseName.DATABASE_NAME.value)
         self.engine = create_engine(self.url, echo=True)
-
+    
     def create_all_tables(self):
         Base.metadata.create_all(self.engine, checkfirst=True)
 
