@@ -10,7 +10,7 @@ from league_pipeline.rate_limiting.rate_manager import TokenBucket
 from league_pipeline.utils.http_utils import safely_fetch_rate_limited_data
 
 class SummonerEntries:
-    def __init__(self, api_key: str, regions: Type[Enum], logger: Type[Logger], token_bucket: TokenBucket):
+    def __init__(self, api_key: str, regions: Type[Enum], logger: Type[Logger], token_bucket: TokenBucket) -> None:
         self.api_key = api_key
         self.logger = logger
         self.region_list = list(regions.__members__.keys())
@@ -74,5 +74,6 @@ class SummonerEntries:
 
         async with ClientSession() as session:
            result = await asyncio.gather(*[self.summoner_entries_by_tier(region, queue, tier, division, pages,session) for region in self.region_list])
+
         return result
     
