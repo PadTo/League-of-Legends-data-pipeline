@@ -27,6 +27,7 @@ class StatusResponseException:
                 "- Missing authentication credentials (e.g., API key).\n"
                 "- Fix:\n"
                 "  • Ensure API key is included in the request."
+                "  • Also ensure that the API key is not outdated."
             ),
             
             403: (
