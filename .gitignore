@@ -5,3 +5,4 @@ api_key_loc_temp.json
 *.db
 *.egg-info
 __pycache__
+*.env
