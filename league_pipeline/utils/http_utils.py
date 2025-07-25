@@ -7,23 +7,22 @@ from logging import Logger
 
 async def safely_fetch_rate_limited_data(url:str, request_header: dict, session: ClientSession, 
                                          region:str, token_bucket: TokenBucket, 
-                                         status_response_exception: StatusResponseException) -> dict:
+                                         status_response_exception: StatusResponseException,
+                                         parameters: dict = {"no_parameters": None}) -> dict:
+    
 
-    async with session.get(url,headers=request_header) as response:
+    while not token_bucket.allow_request(region=region):
+            await asyncio.sleep(token_bucket.calculate_sleep_time(region=region))
+
+
+    async with session.get(url,headers=request_header,
+                           **{key:value for key,value
+                              in parameters.items() if value != None}) as response:
                 status = response.status
 
                 if status == 200:
-                    allow_request = False
-                    while not allow_request:
-                        
-                        allow_request = token_bucket.allow_request(region=region)
-                        sleep_time = token_bucket.calculate_sleep_time(region=region)
-                        if not allow_request:
-                            await asyncio.sleep(sleep_time)
-                    
-                    else:
-                        content = await response.json()
-                        return content
+                    content = await response.json()
+                    return content
 
                 elif status in status_response_exception.get_response_codes():
                     status_response_exception.raise_error(status)
