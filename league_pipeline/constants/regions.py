@@ -26,7 +26,7 @@ class Region(Enum):
     TW2  = "https://tw2.api.riotgames.com"
     VN2  = "https://vn2.api.riotgames.com"
 
-class RoutingRegion(Enum):
+class ContinentalRegion(Enum):
     """
     Riot API URL endpoints for routing regions, used for MATCH-V5 endpoints.
 
@@ -40,3 +40,41 @@ class RoutingRegion(Enum):
     AMERICAS = "https://americas.api.riotgames.com"
     ASIA     = "https://asia.api.riotgames.com"
     EUROPE   = "https://europe.api.riotgames.com"
+
+class RegionMapping(Enum):
+    """
+    Maps League of Legends platform regions to their corresponding continental routing regions.
+    
+    Used to determine which continental region endpoint to use for MATCH-V5 API calls
+    when you have a platform region identifier.
+    
+    Usage:
+        platform_region = "NA1"
+        continental_region = RegionMapping[platform_region].value
+        # continental_region = "AMERICAS"
+    """
+    
+    # AMERICAS routing region
+    BR1 = "AMERICAS"  # Brazil
+    LA1 = "AMERICAS"  # Latin America North
+    LA2 = "AMERICAS"  # Latin America South
+    NA1 = "AMERICAS"  # North America
+    OC1 = "AMERICAS"  # Oceania
+    
+    # ASIA routing region
+    JP1 = "ASIA"      # Japan
+    KR  = "ASIA"      # Korea
+    SG2 = "ASIA"      # Singapore, Malaysia, & Indonesia
+    TW2 = "ASIA"      # Taiwan, Hong Kong, and Macao
+    VN2 = "ASIA"      # Vietnam
+    
+    # EUROPE routing region
+    EUN1 = "EUROPE"   # Europe Nordic & East
+    EUW1 = "EUROPE"   # Europe West
+    ME1  = "EUROPE"   # Middle East
+    TR1  = "EUROPE"   # Turkey
+
+
+
+
+print(RegionMapping.__members__["BR1"].value)
