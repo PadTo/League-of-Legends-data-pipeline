@@ -4,7 +4,7 @@ from logging import Logger
 from league_pipeline.constants.rates import Rates
 from league_pipeline.utils.exceptions import StatusCodeError
 from league_pipeline.utils.http_utils import retry_api_call, exponential_back_off
-
+from league_pipeline.constants.rates import Rates
 
 
 
@@ -13,6 +13,7 @@ def async_api_call_error_wrapper(function):
     async def wrap(*args, **kwargs):
         
         self_instance = args[0]  # First Argument is Self
+        region = kwargs["region"]
         logger: Logger = self_instance.logger
         max_retries = Rates.MAX_API_CALL_RETRIES.value
         for attempt in range(0, max_retries):
@@ -33,6 +34,10 @@ def async_api_call_error_wrapper(function):
                         await asyncio.sleep(wait_time)
                     else:
                         raise
+                elif e.status_code == 429:
+                    logger.warning(f"{str(e)} \n Region: {region} \n Waiting for: {Rates.SLEEP_TIME_IF_RATE_LIMIT_EXCEEDED.value} Seconds")
+                    await asyncio.sleep(Rates.SLEEP_TIME_IF_RATE_LIMIT_EXCEEDED.value)
+                    
                 else:
                     logger.error(f"{str(e)}")
                     raise
@@ -40,7 +45,7 @@ def async_api_call_error_wrapper(function):
             except ClientResponseError as e:
                 if e.status >= 500:
                     logger.warning(f"HTTP {e.status}: {e.message}")
-
+                    retry = retry_api_call(e, attempt, max_retries, logger)
                     if retry:
                         wait_time = exponential_back_off(Rates.EXPONENTIAL_BACK_OFF_BASE_VALUE.value,
                                                             Rates.MAX_WAITING_TIME_BETWEEN_RETRIES.value,
