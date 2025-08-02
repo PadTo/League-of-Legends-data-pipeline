@@ -2,6 +2,8 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import String, Integer, Boolean, Float, ForeignKey, create_engine
 from league_pipeline.constants.database_constants import DatabaseTableNames, DatabaseName, DatabaseConfiguration
+from pathlib import Path
+from typing import Union
 
 class Base(DeclarativeBase):
     pass
@@ -9,6 +11,7 @@ class Base(DeclarativeBase):
 class Summoners(Base):
     __tablename__ = DatabaseTableNames.SUMMONERS_TABLE.value
     puuid: Mapped[str] = mapped_column("puuId", String, primary_key=True)
+    continental_region: Mapped[str] = mapped_column("continentalRegion", String)
     current_tier: Mapped[str] = mapped_column("currentTier", String)
     current_division: Mapped[str] = mapped_column("currentDivision", String)
     date_collected: Mapped[str] = mapped_column("dateCollected", String)
@@ -24,7 +27,7 @@ class MatchIDs(Base):
 class MatchDataTeams(Base):
     __tablename__ = DatabaseTableNames.MATCH_DATA_TEAMS_TABLE.value
     
-    match_id: Mapped[str] = mapped_column("matchId", ForeignKey("Match_ID_Table.matchId", ondelete="SET NULL"), primary_key=True)
+    match_id: Mapped[str] = mapped_column("matchId", ForeignKey(DatabaseTableNames.MATCH_IDS_TABLE.value, ondelete="SET NULL"), primary_key=True)
     team_id: Mapped[int] = mapped_column("teamId", Integer, primary_key=True)
     
     killed_atakhan: Mapped[int] = mapped_column("killedAtakhan", Integer)
@@ -44,7 +47,7 @@ class MatchDataParticipants(Base):
     __tablename__ = DatabaseTableNames.MATCH_DATA_PARTICIPANTS_TABLE.value
 
     puuid: Mapped[str] = mapped_column("puuId", String, primary_key=True)
-    match_id: Mapped[str] = mapped_column("matchId", ForeignKey("Match_ID_Table.matchId", ondelete="CASCADE"), primary_key=True)
+    match_id: Mapped[str] = mapped_column("matchId", ForeignKey(DatabaseTableNames.MATCH_IDS_TABLE.value, ondelete="CASCADE"), primary_key=True)
     team_id: Mapped[int] = mapped_column("teamId", Integer)
     game_tier: Mapped[str] = mapped_column("gameTier", String)
 
@@ -95,7 +98,7 @@ class MatchDataParticipants(Base):
 
 class MatchTimeline(Base):
     __tablename__ = DatabaseTableNames.MATCH_TIMELINE_TABLE.value
-    match_id: Mapped[str] = mapped_column("matchId", ForeignKey("Match_Data_Participants_Table.matchId", ondelete="SET NULL"), primary_key=True)
+    match_id: Mapped[str] = mapped_column("matchId", ForeignKey(DatabaseTableNames.MATCH_DATA_PARTICIPANTS_TABLE.value, ondelete="SET NULL"), primary_key=True)
     puuid: Mapped[str] = mapped_column("puuId", String, primary_key=True)
     timestamp: Mapped[int] = mapped_column("timestamp", Integer, primary_key=True)
 
@@ -109,12 +112,11 @@ class MatchTimeline(Base):
 
   
 class DataBase:
-    def __init__(self, location: str):
+    def __init__(self, location: Union[str, Path]):
         # self.url = "sqlite+pysqlite:///" + f"{location}" + f"\\{DatabaseName.DATABASE_NAME.value}.db"
         self.url = DatabaseConfiguration.url.value.format(location=location, name=DatabaseName.DATABASE_NAME.value)
-        self.engine = create_engine(self.url, echo=True)
+        self.engine = create_engine(self.url, echo=False)
     
     def create_all_tables(self):
         Base.metadata.create_all(self.engine, checkfirst=True)
-
 
