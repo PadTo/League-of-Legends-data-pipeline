@@ -3,14 +3,14 @@
 from pathlib import Path
 from dotenv import load_dotenv
 import os
-
+from league_pipeline.constants.database_constants import DatabaseName
 
 class Paths:
     BASE = Path("D:/Programming Projects/League-of-Legends-data-pipeline")
     DATA = BASE / "data"
     CONFIG = BASE / "config"
     KEY = CONFIG / "api_key.env"
-    LOGGING_CONFIG = BASE / "league_pipeline" / "config" / "log_config.json"
+    LOGGING_CONFIG = CONFIG / "log_config.json"
 
 class Stages:
     TO_PROCESS = [1, 0, 0, 0, 0]
