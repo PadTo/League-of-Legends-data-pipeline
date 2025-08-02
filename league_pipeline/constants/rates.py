@@ -4,6 +4,7 @@ import numpy as np
 class Rates(Enum):
     MAX_CALLS = 100
     WINDOW    = 120
+    SLEEP_TIME_IF_RATE_LIMIT_EXCEEDED = 30
 
     MAX_CALLS_PER_SECOND = 20
     SECOND_WINDOW        = 1
@@ -15,4 +16,3 @@ class Rates(Enum):
     EXPONENTIAL_BACK_OFF_BASE_VALUE = np.e
     JITTER                          = True
 
-    
