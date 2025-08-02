@@ -8,18 +8,20 @@ from logging import Logger
 async def safely_fetch_rate_limited_data(url:str, request_header: dict, session: ClientSession, 
                                          region:str, token_bucket: TokenBucket, 
                                          status_response_exception: StatusResponseException,
-                                         parameters: dict = {"no_parameters": None}) -> dict:
+                                         logger: Logger,
+                                         parameters: dict = {"no_parameters": None}) -> list:
     
 
     while not token_bucket.allow_request(region=region):
-            await asyncio.sleep(token_bucket.calculate_sleep_time(region=region))
-
+            sleep_time = token_bucket.calculate_sleep_time(region=region)
+            await asyncio.sleep(sleep_time)
 
     async with session.get(url,headers=request_header,
                            **{key:value for key,value
                               in parameters.items() if value != None}) as response:
+                
                 status = response.status
-
+                
                 if status == 200:
                     content = await response.json()
                     return content
