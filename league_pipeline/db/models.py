@@ -21,8 +21,9 @@ class MatchIDs(Base):
     __tablename__ = DatabaseTableNames.MATCH_IDS_TABLE.value
     match_id: Mapped[str] = mapped_column("matchId", String, primary_key=True)
     puuid: Mapped[str] = mapped_column("puuId", ForeignKey("Summoners.puuId"), nullable=True)
+    game_tier: Mapped[str] = mapped_column("gameTier", String)
     game_timestamp: Mapped[int] = mapped_column("gameTimeStamp", Integer)
-
+    
 
 class MatchDataTeams(Base):
     __tablename__ = DatabaseTableNames.MATCH_DATA_TEAMS_TABLE.value
@@ -39,7 +40,6 @@ class MatchDataTeams(Base):
     rift_herald_kills: Mapped[int] = mapped_column("riftHeraldKills", Integer)
     tower_kills: Mapped[int] = mapped_column("towerKills", Integer)
     team_win: Mapped[bool] = mapped_column("teamWin", Boolean)
-    game_tier: Mapped[str] = mapped_column("gameTier", String)
     end_of_game_result: Mapped[str] = mapped_column("endOfGameResult", String)
 
 
@@ -49,7 +49,6 @@ class MatchDataParticipants(Base):
     puuid: Mapped[str] = mapped_column("puuId", String, primary_key=True)
     match_id: Mapped[str] = mapped_column("matchId", ForeignKey(DatabaseTableNames.MATCH_IDS_TABLE.value, ondelete="CASCADE"), primary_key=True)
     team_id: Mapped[int] = mapped_column("teamId", Integer)
-    game_tier: Mapped[str] = mapped_column("gameTier", String)
 
     # KDA Stats
     champion_kills: Mapped[int] = mapped_column("championKills", Integer)
