@@ -26,13 +26,13 @@ class SummonerCollectionService:
 
         self.api_key = api_key
         
-        self.summoner_entries = SummonerEntries(api_key,self.logger, token_bucket)
+        self.SummonerEntries = SummonerEntries(api_key,self.logger, token_bucket)
 
         self.url = DatabaseConfiguration.url.value.format(location=db_location, name=database_name)
         
         
         self.data_saver = DataSaver(db_location, database_name,self.url,
-                                    self.summoner_entries.sql_table_object,
+                                    self.SummonerEntries.sql_table_object,
                                     self.logger)
 
 
@@ -61,7 +61,7 @@ class SummonerCollectionService:
                                      session: ClientSession):
         
         async with semaphore:
-            result = await self.summoner_entries.summoner_entries_by_tier(tier=tier,queue=queue,
+            result = await self.SummonerEntries.summoner_entries_by_tier(tier=tier,queue=queue,
                                                                  division=division,pages=page,
                                                                  region=region,session=session)
             return result
