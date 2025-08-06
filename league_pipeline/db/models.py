@@ -3,7 +3,8 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import String, Integer, Boolean, Float, ForeignKey, create_engine
 from league_pipeline.constants.database_constants import DatabaseTableNames, DatabaseName, DatabaseConfiguration
 from pathlib import Path
-from typing import Union
+from typing import Union, Type
+
 
 class Base(DeclarativeBase):
     pass
@@ -12,6 +13,7 @@ class Summoners(Base):
     __tablename__ = DatabaseTableNames.SUMMONERS_TABLE.value
     puuid: Mapped[str] = mapped_column("puuId", String, primary_key=True)
     continental_region: Mapped[str] = mapped_column("continentalRegion", String)
+    local_region: Mapped[str] = mapped_column("localRegion", String)
     current_tier: Mapped[str] = mapped_column("currentTier", String)
     current_division: Mapped[str] = mapped_column("currentDivision", String)
     date_collected: Mapped[str] = mapped_column("dateCollected", String)
@@ -22,8 +24,6 @@ class MatchIDs(Base):
     match_id: Mapped[str] = mapped_column("matchId", String, primary_key=True)
     puuid: Mapped[str] = mapped_column("puuId", ForeignKey("Summoners.puuId"), nullable=True)
     game_tier: Mapped[str] = mapped_column("gameTier", String)
-    game_timestamp: Mapped[int] = mapped_column("gameTimeStamp", Integer)
-    
 
 class MatchDataTeams(Base):
     __tablename__ = DatabaseTableNames.MATCH_DATA_TEAMS_TABLE.value
@@ -119,3 +119,8 @@ class DataBase:
     def create_all_tables(self):
         Base.metadata.create_all(self.engine, checkfirst=True)
 
+    def drop_table(self, table:Type[Base]):
+        table.__table__.drop(self.engine)
+
+
+DataBase(r"D:\Programming Projects\League-of-Legends-data-pipeline\data").create_all_tables()
