@@ -72,7 +72,8 @@ class SummonerEntries:
         return content
     
     @async_api_call_error_wrapper
-    async def summoner_tier_from_puuid(self, region: str, queue: str, puuid: str, session: ClientSession) -> str:
+    async def summoner_tier_from_puuid(self, region: str, queue: str,
+                                       puuid: str, session: ClientSession) -> str:
         """
             Retrieves the competitive tier for a given summoner's PuuID.
 
@@ -86,16 +87,18 @@ class SummonerEntries:
                 StatusCodeError: If the API request fails or returns an error.
             """
         
-        summoner_entries_endpoint = SummonerEndpoint.BY_PUUID.value.format(puuid)
+        summoner_entries_endpoint = SummonerEndpoint.BY_PUUID.value.format(encryptedPUUID=puuid)
         url = BaseEndpoint.BASE_RIOT_URL.value.format(region=region) + summoner_entries_endpoint
+
 
         content = await safely_fetch_rate_limited_data(url,self.request_header,session,region,
                                                        self.token_bucket,self.status_response_exception,
                                                        logger=self.logger)
         
+
         if not content:
              return "UNRANKED"
-        
+
         for entry in content:
              if entry.get("queueType", "") == queue:
                 return entry.get("tier", "UNRANKED")
@@ -110,6 +113,7 @@ class SummonerEntries:
             transformed_results["puuid"] = result["puuid"]
             region = result["region"]
             transformed_results["continental_region"] = RegionMapping.__members__[region].value
+            transformed_results["local_region"] = region
             transformed_results["current_tier"] = result["tier"]
             transformed_results["current_division"] = result["rank"]
             transformed_results["date_collected"] = current_date
