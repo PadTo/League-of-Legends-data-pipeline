@@ -108,7 +108,3 @@ class StatusResponseException:
             raise StatusCodeError(
                 status_code, self.response_code_dict[status_code])
         
-
-d = StatusResponseException()
-
-print(d.get_response_codes())
