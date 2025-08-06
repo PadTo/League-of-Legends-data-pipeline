@@ -6,14 +6,19 @@ from league_pipeline.utils.exceptions import StatusResponseException
 from league_pipeline.rate_limiting.rate_manager import TokenBucket
 from league_pipeline.utils.http_utils import safely_fetch_rate_limited_data
 from league_pipeline.db.models import MatchIDs
+from league_pipeline.constants.pipeline_constants import DataProcessingConfig
+from time import time
+from league_pipeline.utils.time_converter import unix_time_converter
 
 class MatchIDsCall:
     def __init__(self, api_key: str, logger: Logger, 
-                 token_bucket: TokenBucket) -> None:
+                 token_bucket: TokenBucket,
+                 day_limit: int = DataProcessingConfig.DAY_LIMIT) -> None:
         self.api_key = api_key
         self.logger = logger
         self.token_bucket = token_bucket
 
+        self.day_limit_in_seconds = unix_time_converter(day_limit,"d","s")
         self.sql_table_object = MatchIDs
 
         self.status_response_exception = StatusResponseException()
@@ -21,10 +26,14 @@ class MatchIDsCall:
 
     @async_api_call_error_wrapper
     async def match_ids_from_puuids(self, region: str, puuid: str, game_type: str,
-                                    session: ClientSession, start:int = 0, count:int = 100) -> list:
-        
+                                    session: ClientSession,
+                                    start:int = DataProcessingConfig.START,
+                                    count:int = DataProcessingConfig.COUNT) -> list:
+        current_time = time()
+        start_time = current_time - self.day_limit_in_seconds
         api_parameters={"params":
-                        {f"type": game_type,
+                        {"type": game_type,
+                         "startTime": int(start_time),
                          "start":start,
                          "count": count}}
 
@@ -35,13 +44,12 @@ class MatchIDsCall:
                                                        logger = self.logger, parameters=api_parameters)
         return content
     
-    async def transfom_results(self, data: list, game_tier: str, game_timestamp:int, puuid: str):
+    def transfom_results(self, data: list, game_tier: str, puuid: str) -> list:
         transformed_results = []
         for match_id in data:
             temp_dict_for_results = {}
-            temp_dict_for_results["match_id"] = match_id[0]
+            temp_dict_for_results["match_id"] = match_id
             temp_dict_for_results["puuid"] = puuid
             temp_dict_for_results["game_tier"] = game_tier 
-            temp_dict_for_results["game_timestamp"] = game_timestamp
-            transformed_results.extend(temp_dict_for_results)
-
+            transformed_results.extend([temp_dict_for_results])
+        return transformed_results
