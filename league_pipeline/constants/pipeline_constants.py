@@ -9,7 +9,7 @@ class DataProcessingConfig:
     DAY_LIMIT = 3          # In days
     MATCHES_PER_TIER = 50
     PLAYERS_PER_TIER = 100
-    start:int = 0
-    count:int = 100
+    START:int = 0
+    COUNT:int = 100
 
 
