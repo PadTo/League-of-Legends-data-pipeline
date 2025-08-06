@@ -74,7 +74,5 @@ class RegionMapping(Enum):
     ME1  = "EUROPE"   # Middle East
     TR1  = "EUROPE"   # Turkey
 
+    
 
-
-
-print(RegionMapping.__members__["BR1"].value)
