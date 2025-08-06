@@ -8,7 +8,7 @@ class AccountEndpoint(Enum):
     BY_PUUID   = "/riot/account/v1/accounts/by-puuid/{puuId}"
 
 class SummonerEndpoint(Enum):
-    BY_PUUID = "/lol/summoner/v4/summoners/by-puuid/{puuId}"
+    BY_PUUID = "/lol/league/v4/entries/by-puuid/{encryptedPUUID}"
     BY_NAME  = "/lol/summoner/v4/summoners/by-name/{summonerName}"
 
 class LeagueEndpoint(Enum):
