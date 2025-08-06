@@ -9,7 +9,7 @@ async def safely_fetch_rate_limited_data(url:str, request_header: dict, session:
                                          region:str, token_bucket: TokenBucket, 
                                          status_response_exception: StatusResponseException,
                                          logger: Logger,
-                                         parameters: dict = {"no_parameters": None}) -> list:
+                                         parameters: dict = {"no_parameters": None}):
     
 
     while not token_bucket.allow_request(region=region):
