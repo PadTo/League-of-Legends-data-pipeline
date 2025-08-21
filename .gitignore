@@ -6,3 +6,4 @@ api_key_loc_temp.json
 *.egg-info
 __pycache__
 *.env
+testing
