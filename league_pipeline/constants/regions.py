@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class Region(Enum):
     """
     Riot API URL endpoints corresponding to specific player regions.
@@ -10,6 +9,22 @@ class Region(Enum):
         - SUMMONER-V4 (e.g., summoners by encrypted PUUID)
     
     Each enum member represents the base URL for API calls in that region.
+    
+    Attributes:
+        BR1 (str): Brazil region endpoint.
+        EUN1 (str): Europe Nordic & East region endpoint.
+        EUW1 (str): Europe West region endpoint.
+        JP1 (str): Japan region endpoint.
+        KR (str): Korea region endpoint.
+        LA1 (str): Latin America North region endpoint.
+        LA2 (str): Latin America South region endpoint.
+        ME1 (str): Middle East region endpoint.
+        NA1 (str): North America region endpoint.
+        OC1 (str): Oceania region endpoint.
+        SG2 (str): Singapore, Malaysia & Indonesia region endpoint.
+        TR1 (str): Turkey region endpoint.
+        TW2 (str): Taiwan, Hong Kong & Macao region endpoint.
+        VN2 (str): Vietnam region endpoint.
     """
     BR1  = "https://br1.api.riotgames.com"
     EUN1 = "https://eun1.api.riotgames.com"
@@ -31,10 +46,16 @@ class ContinentalRegion(Enum):
     Riot API URL endpoints for routing regions, used for MATCH-V5 endpoints.
 
     Routing regions group multiple player regions for match data requests.
-     - For example, matches for NA1, BR1, LA1 are all accessed via the AMERICAS routing region.
+    For example, matches for NA1, BR1, LA1 are all accessed via the AMERICAS routing region.
     
     Used with endpoints such as:
         - /lol/match/v5/matches/by-puuid/{puuid}/ids
+        - /lol/match/v5/matches/{matchId}
+    
+    Attributes:
+        AMERICAS (str): Americas continental routing region endpoint.
+        ASIA (str): Asia continental routing region endpoint.
+        EUROPE (str): Europe continental routing region endpoint.
     """
 
     AMERICAS = "https://americas.api.riotgames.com"
@@ -45,13 +66,34 @@ class RegionMapping(Enum):
     """
     Maps League of Legends platform regions to their corresponding continental routing regions.
     
-    Used to determine which continental region endpoint to use for MATCH-V5 API calls
-    when you have a platform region identifier.
+    This mapping is essential for determining which continental region endpoint to use
+    for MATCH-V5 API calls when you have a platform region identifier.
     
     Usage:
         platform_region = "NA1"
         continental_region = RegionMapping[platform_region].value
         # continental_region = "AMERICAS"
+    
+    Attributes:
+        Americas Regions:
+            BR1 (str): Brazil -> AMERICAS
+            LA1 (str): Latin America North -> AMERICAS
+            LA2 (str): Latin America South -> AMERICAS
+            NA1 (str): North America -> AMERICAS
+            OC1 (str): Oceania -> AMERICAS
+        
+        Asia Regions:
+            JP1 (str): Japan -> ASIA
+            KR (str): Korea -> ASIA
+            SG2 (str): Singapore, Malaysia & Indonesia -> ASIA
+            TW2 (str): Taiwan, Hong Kong & Macao -> ASIA
+            VN2 (str): Vietnam -> ASIA
+        
+        Europe Regions:
+            EUN1 (str): Europe Nordic & East -> EUROPE
+            EUW1 (str): Europe West -> EUROPE
+            ME1 (str): Middle East -> EUROPE
+            TR1 (str): Turkey -> EUROPE
     """
     
     # AMERICAS routing region
@@ -73,6 +115,3 @@ class RegionMapping(Enum):
     EUW1 = "EUROPE"   # Europe West
     ME1  = "EUROPE"   # Middle East
     TR1  = "EUROPE"   # Turkey
-
-    
-
