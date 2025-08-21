@@ -2,6 +2,9 @@
 
 A comprehensive, scalable data pipeline for collecting and analyzing League of Legends match data using the Riot Games API.
 
+You can find the complete documentation here:  
+👉 [League of Legends Data Pipeline Docs](https://github.com/PadTo/League-of-Legends-data-pipeline/tree/main/docs)
+
 ## 🚀 Features
 
 - **Multi-Region Support**: Collect data from all League of Legends regions
