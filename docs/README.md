@@ -37,25 +37,53 @@ This project implements a production-ready data pipeline for collecting, process
 ```
 league_pipeline/
 ├── config/                 # Configuration files
+├──── log_config.json
+└──── logger_config_setup.json
 ├── constants/              # Enums and constants
+├──── database_constants.py
+├──── endpoints.py
+├──── file_folder_paths.py
+├──── league_ranks.py
+├──── pipeline_constants.py
+├──── rates.py
+└──── regions.py
 ├── db/                    # Database models and connections
+├──── data_saving.py
+├──── db_connection.py
+└──── models.py
 ├── key/                   # API key management
+├──── api_key.env
+└──── key_handler.py
 ├── pipeline/              # Main pipeline orchestration
+└────
 ├── rate_limiting/         # Token bucket rate limiting
+└──── rate_manager.py
 ├── riot_api/              # API client implementations
+├──── match_data.py
+├──── math_ids.py
+├──── match_timeline.py
+└──── summoners.py
 ├── services/              # Business logic services
-└── utils/                 # Utility functions
+├──── match_data_service.py
+├──── math_ids_service.py
+├──── match_timeline_service.py
+└──── summoners_service.py
+├── utils/                 # Utility functions
+├──── decorators.py
+├──── exceptions.py
+├──── http_utils.py
+└──── time_converter.py
 ```
 
 ### Component Overview
 
-#### Services Layer
+#### Services Layer (Collects Data for All Regions)
 - **SummonerCollectionService**: Collects player ranking data
 - **MatchIDCollectionService**: Gathers match identifiers
 - **MatchDataService**: Retrieves detailed match statistics
 - **MatchTimelineService**: Collects positional and event timeline data
 
-#### API Layer
+#### API Layer (Api Call Classes with Data Transformation Functions)
 - **SummonerEntries**: Player ranking and tier information
 - **MatchIDsCall**: Match ID collection with filtering
 - **MatchData**: Comprehensive match statistics
@@ -95,17 +123,7 @@ league_pipeline/
    pip install -r requirements.txt
    ```
 
-4. **Set Up API Key**
-   ```bash
-   # Create the key file
-   mkdir -p league_pipeline/key
-   echo "RIOT_API_KEY=RGAPI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" > league_pipeline/key/api_key.env
-   ```
-
-5. **Initialize Database**
-   ```bash
-   python -c "from league_pipeline.db.models import DataBase; DataBase('data').create_all_tables()"
-   ```
+4. **TBD**
 
 ## Configuration
 
