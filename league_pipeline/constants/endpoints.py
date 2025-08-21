@@ -20,5 +20,6 @@ class LeagueEndpoint(Enum):
 class MatchEndpoint(Enum):
     MATCH_IDS_BY_PUUID = "/lol/match/v5/matches/by-puuid/{puuId}/ids"
     BY_MATCH_ID        = "/lol/match/v5/matches/{matchId}"
+    MATCH_TIMELINE_BY_MATCH_ID = "/lol/match/v5/matches/{matchId}/timeline"
 
 
