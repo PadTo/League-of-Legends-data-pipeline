@@ -1,157 +1,69 @@
-# 🧩 League of Legends Data Pipeline
+# League of Legends Data Pipeline
 
-A comprehensive data collection pipeline for League of Legends match data using the Riot Games API.
+A comprehensive, scalable data pipeline for collecting and analyzing League of Legends match data using the Riot Games API.
 
-## ✨ What it does
+## 🚀 Features
 
-Collects and stores League of Legends match data including:
-- Player profiles across all tiers (Iron to Challenger)
-- Detailed match information and statistics
-- Frame-by-frame timeline events
-- Team and participant performance data
+- **Multi-Region Support**: Collect data from all League of Legends regions
+- **Intelligent Rate Limiting**: Token bucket implementation respects Riot API limits
+- **Async Processing**: High-performance concurrent API calls
+- **Comprehensive Data Collection**: 
+  - Player/Summoner information
+  - Match IDs and metadata
+  - Detailed match statistics
+  - Timeline events and positioning data
+- **Robust Database Design**: SQLite with proper normalization and relationships 
+- **Production-Ready**: Error handling, retries with exponential back-off, and logging
 
-## 🚀 Quick Start
+## 📊 Data Collected
 
-### Prerequisites
-- Python 3.7+
-- Valid Riot Games API key ([Get one here](https://developer.riotgames.com/))
+- **Summoner Data**: Rankings, regions, tiers, divisions
+- **Match Statistics**: KDA, gold, damage, vision, objectives
+- **Timeline Events**: Kills, objectives, positioning over time
+- **Team Performance**: Win/loss, objectives, team compositions
 
-### Installation
+## 🛠️ Tech Stack
 
-1. Clone the repository:
+- **Python 3.8+** with asyncio for concurrent processing
+- **aiohttp** for async HTTP requests
+- **asyncio** for async processing
+- **SQLAlchemy** for database ORM
+- **SQLite** for data storage (adjustable)
+- **Riot Games API** for data source
+
+## 📈 Use Cases
+
+- **Esports Analytics**: Team and player performance analysis
+- **Game Balance Research**: Meta analysis and champion statistics
+- **Academic Research**: Large-scale gaming behavior studies
+- **Personal Projects**: Rank analysis, improvement tracking
+
+## 🚦 Quick Start
+
 ```bash
-git clone https://github.com/PadTo/League-of-Legends-data-pipeline.git
-cd League-of-Legends-data-pipeline
+# Clone the repository
+git clone https://github.com/yourusername/league-of-legends-data-pipeline.git
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up your Riot API key
+echo "RIOT_API_KEY=your_api_key_here" > league_pipeline/key/api_key.env
+
+# Run the pipeline
+python scripts/run_pipeline.py
 ```
 
-2. Install the package:
-```bash
-pip install .
-```
+## 📋 Requirements
 
-3. Run the pipeline:
-```bash
-python main.py
-```
+- Python 3.8+
+- Riot Games API key (free at [developer.riotgames.com](https://developer.riotgames.com))
+- ~1GB free disk space for database
 
-You'll be prompted to enter your Riot API key on first run.
+## 📄 License
 
-## ⚙️ Configuration
-
-Edit `pipeline_configuration.json` to customize:
-
-```json
-{
-  "players_per_tier": 5,
-  "matches_per_tier": 100,
-  "day_limit": 12,
-  "stages_to_process": [1, 1, 1, 1],
-  "database_save_location": "your/data/path"
-}
-```
-
-**Key Settings:**
-- `players_per_tier`: Number of players to collect per rank
-- `matches_per_tier`: Number of matches to process per tier
-- `day_limit`: Only collect matches from last N days
-- `stages_to_process`: Enable/disable pipeline stages [summoners, matches, match data, timelines]
-
-## 🗃️ Data Output
-
-The pipeline creates an SQLite database with 5 tables:
-- **Summoners**: Player profiles and rankings
-- **Match_IDs**: Match identifiers and metadata
-- **Match_Teams**: Team-level statistics
-- **Match_Participants**: Individual player performance
-- **Match_Timeline**: Frame-by-frame game events
-
-Export to CSV using the included `LoLDatabaseQuery` class.
-
-## 📊 Features
-
-- **Smart Rate Limiting**: Respects Riot API limits with exponential backoff
-- **Tier Classification**: Majority voting system for accurate match ranking
-- **Selective Processing**: Run only the stages you need
-- **Production Ready**: Comprehensive logging and error handling
-- **Memory Efficient**: Configurable batch processing
-
-## 🏗️ Project Structure
-
-<pre>
-
-league_pipeline/
-├── config/
-│   ├── __init__.py
-│   ├── log_config.json
-│   ├── pipeline_config.json
-│   ├── riot_api_key.py
-├── db/
-│   ├── __init__.py
-│   ├── db_interface.py
-├── data_collection/
-│   ├── __init__.py
-│   ├── riot_api.py
-├── pipeline/
-│   ├── __init__py
-│   ├── run_pipeline.py
-├── riot_api/
-│   ├── __init__.py
-│   ├── riot_client.py
-├── utils/
-│   ├── __init__.py
-│   ├── logger.py
-├── __init__.py
-logs/
-notebooks/
-├── playground.ipynb
-photos/
-│   ├── API_Call_Workflow.png
-│   ├── Database_Tables_Relationships
-.gitignore
-README.md
-setup.py
-
-</pre>
-
-## 🔧 Advanced Usage
-
-For detailed configuration options, API workflow diagrams, and database schema documentation, see the [full documentation](documentation.txt).
-
-### Common Use Cases
-
-**Research/Analysis:**
-```json
-{
-  "players_per_tier": 50,
-  "matches_per_tier": 500,
-  "day_limit": 7
-}
-```
-
-**Quick Testing:**
-```json
-{
-  "players_per_tier": 5,
-  "matches_per_tier": 10,
-  "day_limit": 3
-}
-```
-
-## ⚠️ Important Notes
-
-- **Processing Time**: Full data collection takes several hours due to API rate limits
-- **European Regions Only**: Currently supports EUW/EUNE regions
-- **API Key Required**: Valid Riot Games developer API key needed
-- **Storage Space**: Full datasets can be several GB
-
-## 🤝 Contributing
-
-Issues and pull requests welcome! Please check the [documentation](documentation.txt) for development setup.
-
-## 📝 License
-
-This project is not affiliated with Riot Games. Use in accordance with Riot's API Terms of Service.
+MIT License - see LICENSE file for details.
 
 ---
 
-*For technical details, database schema, and API workflow diagrams, see the complete documentation.*
+⭐ **Star this repo if you find it useful!**
