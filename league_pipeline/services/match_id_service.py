@@ -46,31 +46,35 @@ class MatchIDCollectionService:
                                     self.logger)
 
 
-    #TODO: Maybe add majoriy voting?
+
     async def process_continent(self, continent: str, session: ClientSession) -> None:
         data = self.DataBaseManager.get_puuids_by_continent_from_summoner_table(continent)
-       
+    
+
         for entry in data:
+
             puuid = entry[0]
             local_region = entry[1]
-           
+        
         
             result = await self.MatchIDsCall.match_ids_from_puuids(region=continent,puuid=puuid,
                                                                    game_type=self.game_type, 
                                                                    session=session)
+            
+            tier = await self.SummonersEntries.summoner_tier_from_puuid(
+                                                            region=local_region,
+                                                            queue=self.queue,
+                                                            puuid=puuid,
+                                                            session=session)
+            
 
             if not result:
                 continue
             else:
-                tier = await self.SummonersEntries.summoner_tier_from_puuid(
-                                                               region=local_region,
-                                                               queue=self.queue,
-                                                               puuid=puuid,
-                                                               session=session)
                 
                 transformed_data = self.MatchIDsCall.transfom_results(data=result, game_tier=tier,puuid=puuid)    
                 self.DataSaver.save_data(transformed_data)
-                break
+                
       
 
     async def async_get_and_save_match_ids(self):
