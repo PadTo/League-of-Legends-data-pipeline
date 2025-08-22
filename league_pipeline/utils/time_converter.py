@@ -4,13 +4,27 @@ def unix_time_converter(time: Union[float,int] , time_from: str = "mili", time_t
     """
     Convert between different time units for Unix timestamps.
     
+    This function handles conversions between milliseconds, seconds, minutes,
+    hours, and days for time-based calculations in the pipeline.
+    
     Args:
         time: The time value to convert
         time_from: Source unit ("mili", "s", "min", "h", "d")
         time_to: Target unit ("mili", "s", "min", "h", "d")
     
     Returns:
-        Converted time value as int
+        int: Converted time value as integer
+        
+    Raises:
+        ValueError: If invalid time unit combinations are provided
+        
+    Example:
+        >>> unix_time_converter(1000, "mili", "s")
+        1
+        >>> unix_time_converter(60, "s", "min")
+        1
+        >>> unix_time_converter(24, "h", "d")
+        1
     """
     result = None
     
