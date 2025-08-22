@@ -2,7 +2,7 @@
 
 A comprehensive, production-ready data pipeline for collecting and analyzing League of Legends match data using the Riot Games API with intelligent rate limiting and async processing.
 
-For the full detailed documentation go [HERE]:()
+For the full detailed documentation go [HERE]:(https://github.com/PadTo/League-of-Legends-data-pipeline/tree/main/docs)
 
 ## 🚀 Features
 
