@@ -1,7 +1,6 @@
 from enum import Enum
 
 
-
 class DatabaseTableNames(Enum):
     """
     Enumeration of database table names used in the League of Legends pipeline.
