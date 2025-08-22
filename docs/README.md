@@ -92,11 +92,8 @@ League-of-Legends-Data-Pipeline/
 ├── scripts/                      # Utility scripts
 │   └── run_pipeline.py           # Main execution script
 ├── photos/                        # Screenshots and diagrams
-│   ├── architecture_diagram.png
-│   ├── pipeline_flow.png
-│   └── database_schema.png
+│   └── api_call_workflow.png
 ├── requirements.txt              # Python dependencies
-├── requirements-dev.txt          # Development dependencies
 ├── setup.py                      # Package installation script
 ├── .gitignore                    # Git ignore rules
 └── README.md                     # Main project documentation
