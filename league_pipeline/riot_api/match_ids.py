@@ -11,6 +11,12 @@ from time import time
 from league_pipeline.utils.time_converter import unix_time_converter
 
 class MatchIDsCall:
+    """
+    Handles retrieval of match IDs from player PUUIDs with time-based filtering.
+    
+    This class fetches lists of match IDs for specific players within configurable
+    time ranges and transforms them into database-ready format.
+    """
     def __init__(self, api_key: str, logger: Logger, 
                  token_bucket: TokenBucket,
                  day_limit: int = DataProcessingConfig.DAY_LIMIT) -> None:
@@ -29,6 +35,20 @@ class MatchIDsCall:
                                     session: ClientSession,
                                     start:int = DataProcessingConfig.START,
                                     count:int = DataProcessingConfig.COUNT) -> list:
+        """
+        Retrieve match IDs for a specific player with time filtering.
+        
+        Args:
+            region: Continental region for API routing
+            puuid: Player's unique identifier
+            game_type: Type of matches to retrieve (ranked, normal, etc.)
+            session: aiohttp session
+            start: Starting index for pagination
+            count: Number of matches to retrieve
+            
+        Returns:
+            list: Match IDs from the API
+        """
         current_time = time()
         start_time = current_time - self.day_limit_in_seconds
         api_parameters={"params":
@@ -45,6 +65,17 @@ class MatchIDsCall:
         return content
     
     def transfom_results(self, data: list, game_tier: str, puuid: str) -> list:
+        """
+        Transform match ID list into database records.
+        
+        Args:
+            data: List of match IDs from API
+            game_tier: Player's competitive tier
+            puuid: Player's unique identifier
+            
+        Returns:
+            list: Database-ready match ID records
+        """
         transformed_results = []
         for match_id in data:
             temp_dict_for_results = {}

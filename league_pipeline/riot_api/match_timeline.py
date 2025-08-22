@@ -10,7 +10,24 @@ from league_pipeline.utils.http_utils import safely_fetch_rate_limited_data
 from league_pipeline.constants.file_folder_paths import DatabaseName, Paths
 
 class MatchTimelineCall:
+    """
+    Handles retrieval and transformation of match timeline data from Riot API.
+    
+    This class fetches detailed timeline information including player movements,
+    kills, objectives, and other timestamped events during matches.
+    """
     def __init__(self, api_key: str, logger: Logger, token_bucket: TokenBucket) -> None:
+        """
+        Retrieve timeline data for a specific match.
+        
+        Args:
+            match_id: Unique match identifier
+            region: Continental region for API routing
+            session: aiohttp session
+            
+        Returns:
+            dict: Raw timeline data from Riot API
+        """
         self.api_key = api_key
         self.logger = logger
 
@@ -22,6 +39,17 @@ class MatchTimelineCall:
 
     @async_api_call_error_wrapper
     async def match_timestamps_from_match_id(self, match_id: str, region: str, session: ClientSession):
+        """
+        Retrieve timeline data for a specific match.
+        
+        Args:
+            match_id: Unique match identifier
+            region: Continental region for API routing
+            session: aiohttp session
+            
+        Returns:
+            dict: Raw timeline data from Riot API
+        """
         match_endpoint = MatchEndpoint.MATCH_TIMELINE_BY_MATCH_ID.value.format(matchId=match_id) 
         url = BaseEndpoint.BASE_RIOT_URL.value.format(region=region) + match_endpoint
         content = await safely_fetch_rate_limited_data(url, self.request_header, session, 
@@ -30,7 +58,16 @@ class MatchTimelineCall:
         return content
     
     def transform_results(self, data, match_id) -> list:
-
+        """
+        Transform raw timeline data into database-ready events.
+        
+        Args:
+            data: Raw timeline data from API
+            match_id: Match identifier for the timeline
+            
+        Returns:
+            list: Database-ready timeline event records
+        """
     
         participant_ids = dict()
         participant_ids[0] = "Minion"

@@ -17,6 +17,12 @@ from league_pipeline.utils.time_converter import unix_time_converter
 
 
 class MatchIDCollectionService:
+    """
+    High-level service for collecting and saving match IDs across regions.
+    
+    This service collects match IDs for players from different continental regions
+    and associates them with player tier information for database storage.
+    """
     def __init__(self, db_location: Union[str, Path],
                  database_name: str, continents: Type[Enum],
                  queue:str, api_key: str, tiers: Type[Enum],
@@ -48,6 +54,13 @@ class MatchIDCollectionService:
 
 
     async def process_continent(self, continent: str, session: ClientSession) -> None:
+        """
+        Process match ID collection for a specific continental region.
+        
+        Args:
+            continent: Continental region identifier
+            session: aiohttp session for API requests
+        """
         data = self.DataBaseManager.get_puuids_by_continent_from_summoner_table(continent)
     
 
@@ -78,7 +91,8 @@ class MatchIDCollectionService:
       
 
     async def async_get_and_save_match_ids(self):
-        
+        """Execute asynchronous match ID collection across all configured continents."""
+
         async with ClientSession() as session:
             await asyncio.gather(*[self.process_continent(continent, session)
                                    for continent in self.continent_list]) 

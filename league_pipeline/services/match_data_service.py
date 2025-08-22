@@ -13,6 +13,13 @@ from league_pipeline.db.db_connection import DatabaseQuery
 
 
 class MatchDataService:
+    """
+    High-level service for collecting and saving match data across regions.
+    
+    This service orchestrates the collection of detailed match data from the Riot API
+    and saves it to the database using asynchronous processing across multiple regions.
+    """
+
     def __init__(self, db_location: Union[str, Path],
                     database_name: str, continents: Type[Enum],
                     api_key: str, logger:  Logger, token_bucket: TokenBucket) -> None:
@@ -38,6 +45,14 @@ class MatchDataService:
 
 
     async def process_continent(self, continent: str, session: ClientSession) -> None:
+        """
+        Process match data collection for a specific continental region.
+        
+        Args:
+            continent: Continental region identifier
+            session: aiohttp session for API requests
+        """
+
         data = self.DataBaseManager.get_match_ids_by_continent_from_match_id_table(continent=continent)
         
         for entry in data:
@@ -53,7 +68,8 @@ class MatchDataService:
     
 
     async def async_get_and_save_match_data(self):
-        print(self.continent_list)
+        """Execute asynchronous match data collection across all configured continents."""
+        
         async with ClientSession() as session:
             await asyncio.gather(*[self.process_continent(continent, session)
                                 for continent in self.continent_list]) 

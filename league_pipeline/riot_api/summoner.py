@@ -10,6 +10,12 @@ from league_pipeline.constants.regions import RegionMapping
 import datetime
 
 class SummonerEntries:
+    """
+    Handles retrieval and transformation of summoner data from Riot API.
+    
+    This class fetches summoner information including ranked ladder entries,
+    tier information, and transforms the data for database storage.
+    """
     def __init__(self, api_key: str, logger: Logger,
                  token_bucket: TokenBucket) -> None:
         
@@ -28,19 +34,19 @@ class SummonerEntries:
                                        pages:int, region: str, session: ClientSession,
                                        transform_results: bool = True) -> list:
         """
-        Fetches summoner entries by rank from the Riot API.
-
+        Fetch summoner entries filtered by competitive tier.
+        
         Args:
-            queue (str, optional): The type of ranked queue. Defaults to "RANKED_SOLO_5x5".
-            tier (str, optional): The competitive tier. Defaults to "CHALLENGER".
-            division (str, optional): The rank division. Defaults to "I".
-            pages (int, optional): The number of result pages to fetch. Defaults to 1.
-
+            tier: Competitive tier (CHALLENGER, DIAMOND, etc.)
+            queue: Queue type (RANKED_SOLO_5x5, etc.)
+            division: Division within tier (I, II, III, IV)
+            pages: Number of result pages to fetch
+            region: Regional server identifier
+            session: aiohttp session
+            transform_results: Whether to transform data for database
+            
         Returns:
-            dict: A JSON response containing summoner entries.
-
-        Raises:
-            StatusCodeError: If the API request fails or returns an error.
+            list: Summoner entries, optionally transformed
         """
 
         
@@ -75,17 +81,17 @@ class SummonerEntries:
     async def summoner_tier_from_puuid(self, region: str, queue: str,
                                        puuid: str, session: ClientSession) -> str:
         """
-            Retrieves the competitive tier for a given summoner's PuuID.
-
-            Args:
-                puuid (str): The Player Unique User ID (PuuID) of the summoner.
-
-            Returns:
-                str: The tier of the summoner.
-
-            Raises:
-                StatusCodeError: If the API request fails or returns an error.
-            """
+        Get competitive tier for a specific player.
+        
+        Args:
+            region: Regional server identifier
+            queue: Queue type to check
+            puuid: Player's unique identifier
+            session: aiohttp session
+            
+        Returns:
+            str: Player's competitive tier or "UNRANKED"
+        """
         
         summoner_entries_endpoint = SummonerEndpoint.BY_PUUID.value.format(encryptedPUUID=puuid)
         url = BaseEndpoint.BASE_RIOT_URL.value.format(region=region) + summoner_entries_endpoint
@@ -106,6 +112,15 @@ class SummonerEntries:
         return "UNRANKED"
     
     def transform_results(self, data: list) -> list:
+        """
+        Transform summoner data into database-ready format.
+        
+        Args:
+            data: Raw summoner data from API
+            
+        Returns:
+            list: Database-ready summoner records
+        """
         transformed_data: list = []
         current_date = str(datetime.datetime.now().date())
         for result in data:

@@ -11,6 +11,12 @@ from aiohttp import ClientSession
 import asyncio
 
 class SummonerCollectionService:
+    """
+    High-level service for collecting and saving summoner data across regions.
+    
+    This service manages the collection of summoner entries from ranked ladders
+    across different tiers, divisions, and regional servers.
+    """
     def __init__(self, db_location: Union[str, Path],
                  database_name: str, regions: Type[Enum],
                  queue:str, api_key: str, tiers: Type[Enum],
@@ -37,6 +43,13 @@ class SummonerCollectionService:
 
 
     async def process_region(self, region: str, session: ClientSession) -> None:
+        """
+        Process summoner data collection for a specific region.
+        
+        Args:
+            region: Regional server identifier
+            session: aiohttp session for API requests
+        """
         semaphore = asyncio.Semaphore()
         tasks = []
 
@@ -59,7 +72,19 @@ class SummonerCollectionService:
                                      tier:str, queue: str, division: str,
                                      page: int,region: str, 
                                      session: ClientSession):
+        """
+        Make rate-limited summoner API call with semaphore control.
         
+        Args:
+            semaphore: Asyncio semaphore for concurrency control
+            tier: Competitive tier to query
+            queue: Queue type
+            division: Division within tier
+            page: Page number for pagination
+            region: Regional server identifier
+            session: aiohttp session
+        """
+
         async with semaphore:
             result = await self.SummonerEntries.summoner_entries_by_tier(tier=tier,queue=queue,
                                                                  division=division,pages=page,
@@ -67,6 +92,7 @@ class SummonerCollectionService:
             return result
     
     async def async_get_and_save_summoner_entries(self):
+        """Execute asynchronous summoner data collection across all configured regions."""
 
         async with ClientSession() as session:
            tasks = [self.process_region(region, session) for region in self.region_list]

@@ -11,6 +11,13 @@ from typing import List, Dict, Any
 
 
 class MatchData:
+    """
+    Handles retrieval and transformation of detailed match data from Riot API.
+    
+    This class fetches comprehensive match information including team objectives,
+    participant statistics, and transforms the raw API data into database-ready format.
+    """
+
     def __init__(self, api_key: str, logger: Logger, 
                  token_bucket: TokenBucket) -> None:
         self.api_key = api_key
@@ -26,7 +33,17 @@ class MatchData:
 
     @async_api_call_error_wrapper
     async def match_data_from_match_id(self, region: str, match_id: str, session: ClientSession):
+        """
+        Retrieve detailed match data for a specific match ID.
         
+        Args:
+            region: Continental region for API routing
+            match_id: Unique match identifier
+            session: aiohttp session for making requests
+            
+        Returns:
+            dict: Raw match data from Riot API
+        """
 
         match_endpoint = MatchEndpoint.BY_MATCH_ID.value.format(matchId=match_id)
         url = BaseEndpoint.BASE_RIOT_URL.value.format(region=region) + match_endpoint
@@ -36,7 +53,15 @@ class MatchData:
         return content
 
     def tranform_results(self, data) -> list:
+        """
+        Transform raw match data into database-ready format.
+        
+        Args:
+            data: Raw match data from Riot API
             
+        Returns:
+            list: [team_data_list, participant_data_list] ready for database insertion
+        """
 
         match_id = data["metadata"]["matchId"]
         info = data["info"]

@@ -14,6 +14,12 @@ from league_pipeline.db.db_connection import DatabaseQuery
 
 
 class MatchTimelineService:
+    """
+    High-level service for collecting and saving match timeline data.
+    
+    This service retrieves detailed timeline information for matches and processes
+    the event data for database storage across multiple continental regions.
+    """
     def __init__(self, db_location: Union[str, Path],
                     database_name: str, continents: Type[Enum],
                     api_key: str, logger:  Logger, token_bucket: TokenBucket) -> None:
@@ -35,6 +41,13 @@ class MatchTimelineService:
 
 
     async def process_continent(self, continent: str, session: ClientSession) -> None:
+        """
+        Process timeline data collection for a specific continental region.
+        
+        Args:
+            continent: Continental region identifier
+            session: aiohttp session for API requests
+        """
         data = self.DataBaseManager.get_match_ids_by_continent_from_match_data_table(continent=continent)
         
         for entry in data:
@@ -51,7 +64,8 @@ class MatchTimelineService:
     
 
     async def async_get_and_save_match_data(self):
-        print(self.continent_list)
+        """Execute asynchronous timeline data collection across all configured continents."""
+
         async with ClientSession() as session:
             await asyncio.gather(*[self.process_continent(continent, session)
                                 for continent in self.continent_list]) 
