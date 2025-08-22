@@ -5,11 +5,26 @@ from league_pipeline.constants.rates import Rates
 from league_pipeline.utils.exceptions import StatusCodeError
 from league_pipeline.utils.http_utils import retry_api_call, exponential_back_off
 from league_pipeline.constants.rates import Rates
+from functools import wraps
 
 
-
-# TODO: MAYBE ADDING DIFFERENT RETRY TIMINGS COULD HELP WITH EFFICIENCY
 def async_api_call_error_wrapper(function):
+    """
+    Decorator for handling API call errors with exponential backoff and retry logic.
+    
+    This decorator wraps async functions that make API calls and provides:
+    - Automatic retry for server errors (5xx)
+    - Rate limit handling (429 errors)
+    - Exponential backoff for transient failures
+    - Comprehensive error logging and classification
+    
+    Args:
+        function: Async function that makes API calls
+        
+    Returns:
+        Wrapped function with error handling and retry logic
+    """
+    @wraps(function)
     async def wrap(*args, **kwargs):
         
         self_instance = args[0]  # First Argument is Self
@@ -86,3 +101,4 @@ def async_api_call_error_wrapper(function):
                     raise
     
     return wrap
+
