@@ -51,11 +51,11 @@ League-of-Legends-Data-Pipeline/
 │   │   ├── pipeline_constants.py # Stage configuration, processing limits
 │   │   ├── rates.py              # Rate limiting parameters
 │   │   └── regions.py            # Regional mappings
-│   ├── db/                       # Database layer
+│   ├── db/                        # Database layer
 │   │   ├── __init__.py
-│   │   ├── data_saving.py        # Data persistence with conflict resolution
-│   │   ├── db_connection.py      # Database queries and connections
-│   │   └── models.py             # SQLAlchemy ORM models
+│   │   ├── data_saving.py         # Data persistence with conflict resolution
+│   │   ├── db_connection.py       # Database queries and connections
+│   │   └── models.py              # SQLAlchemy ORM models
 │   ├── key/                      # API key management
 │   │   ├── api_key.env           # Environment variables (gitignored)
 │   │   └── key_handler.py        # Key loading and validation
