@@ -28,15 +28,11 @@ class DataProcessingConfig:
     Attributes:
         PAGE_LIMIT (int): Maximum number of pages to process per API call.
         DAY_LIMIT (int): Time range limit for match collection in days.
-        MATCHES_PER_TIER (int): Number of matches to collect per tier.
-        PLAYERS_PER_TIER (int): Number of players to process per tier.
         START (int): Starting index for paginated API calls.
         COUNT (int): Number of items to request per API call.
     """
     PAGE_LIMIT = 2
-    DAY_LIMIT = 10          # In days
-    MATCHES_PER_TIER = 50
-    PLAYERS_PER_TIER = 100
+    DAY_LIMIT = 3          # In days
     START: int = 0
     COUNT: int = 100
 
