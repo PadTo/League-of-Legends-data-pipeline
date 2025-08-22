@@ -1,718 +1,631 @@
 # League of Legends Data Pipeline - Comprehensive Documentation
 
-## Table of Contents
+A production-ready, scalable data pipeline for collecting, processing, and analyzing League of Legends match data using the Riot Games API. Built with Python asyncio for high-performance concurrent processing and intelligent rate limiting.
 
-1. [Overview](#overview)
-2. [Architecture](#architecture)
-3. [Installation & Setup](#installation--setup)
-4. [Configuration](#configuration)
-5. [Database Schema](#database-schema)
-6. [Pipeline Stages](#pipeline-stages)
-7. [API Integration](#api-integration)
-8. [Rate Limiting](#rate-limiting)
-9. [Usage Examples](#usage-examples)
-10. [Monitoring & Logging](#monitoring--logging)
-11. [Performance Optimization](#performance-optimization)
-12. [Troubleshooting](#troubleshooting)
-13. [Contributing](#contributing)
-14. [Advanced Topics](#advanced-topics)
+## 📋 Table of Contents
 
-## Overview
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Data Collection Pipeline](#data-collection-pipeline)
+- [Technical Implementation](#technical-implementation)
+- [Database Schema](#database-schema)
+- [Rate Limiting & Error Handling](#rate-limiting--error-handling)
+- [Configuration](#configuration)
+- [Installation & Setup](#installation--setup)
+- [Usage Examples](#usage-examples)
+- [API Reference](#api-reference)
+- [Performance & Scalability](#performance--scalability)
+- [Contributing](#contributing)
 
-This project implements a production-ready data pipeline for collecting, processing, and storing League of Legends match data from the Riot Games API. It's designed to handle large-scale data collection with proper rate limiting, error handling, and concurrent processing.
+## 🎯 Overview
 
-### Key Features
+This data pipeline provides a comprehensive solution for collecting and analyzing League of Legends esports data at scale. It handles the complexities of the Riot Games API, including rate limiting, regional differences, and data transformation, while providing a clean, maintainable codebase suitable for production use.
 
-- **Scalable Architecture**: Modular design supports easy extension and maintenance
-- **Multi-Region Support**: Collect data from all 14 League of Legends regions
-- **Intelligent Rate Limiting**: Custom token bucket algorithm respects API limits
-- **Async Processing**: Concurrent API calls with proper resource management
-- **Comprehensive Error Handling**: Exponential backoff, retries, and graceful degradation
-- **Production Logging**: Detailed logging with configurable levels and rotation
+### Key Capabilities
 
-## Architecture
+- **Multi-Regional Data Collection**: Supports all 12+ League of Legends regions with intelligent continental grouping
+- **Comprehensive Match Analysis**: Collects detailed statistics, objectives, timeline events, and positioning data
+- **Production-Grade Reliability**: Built-in error handling, exponential backoff retries, and comprehensive logging
+- **Scalable Architecture**: Async processing with configurable concurrency limits and token bucket rate limiting
+- **Flexible Configuration**: Modular design allows selective data collection based on requirements
 
-### Project Structure
+## 🏗️ Architecture
+
+The pipeline follows a modular, service-oriented architecture with clear separation of concerns:
 
 ```
-league_pipeline/
-├── config/                 # Configuration files
-├──── log_config.json
-└──── logger_config_setup.json
-├── constants/              # Enums and constants
-├──── database_constants.py
-├──── endpoints.py
-├──── file_folder_paths.py
-├──── league_ranks.py
-├──── pipeline_constants.py
-├──── rates.py
-└──── regions.py
-├── db/                    # Database models and connections
-├──── data_saving.py
-├──── db_connection.py
-└──── models.py
-├── key/                   # API key management
-├──── api_key.env
-└──── key_handler.py
-├── pipeline/              # Main pipeline orchestration
-└────
-├── rate_limiting/         # Token bucket rate limiting
-└──── rate_manager.py
-├── riot_api/              # API client implementations
-├──── match_data.py
-├──── math_ids.py
-├──── match_timeline.py
-└──── summoners.py
-├── services/              # Business logic services
-├──── match_data_service.py
-├──── math_ids_service.py
-├──── match_timeline_service.py
-└──── summoners_service.py
-├── utils/                 # Utility functions
-├──── decorators.py
-├──── exceptions.py
-├──── http_utils.py
-└──── time_converter.py
+League-of-Legends-Data-Pipeline/
+├── league_pipeline/              # Core pipeline package
+│   ├── __init__.py
+│   ├── config/                   # Configuration management
+│   │   ├── __init__.py
+│   │   ├── log_config.json       # Logging configuration
+│   │   └── logger_config_setup.py # Logger initialization
+│   ├── constants/                # Application constants and enums
+│   │   ├── __init__.py
+│   │   ├── database_constants.py # Database URLs, table names
+│   │   ├── endpoints.py          # API endpoint definitions
+│   │   ├── file_folder_paths.py  # Path management with pathlib
+│   │   ├── league_ranks.py       # Tiers, divisions, queue types
+│   │   ├── pipeline_constants.py # Stage configuration, processing limits
+│   │   ├── rates.py              # Rate limiting parameters
+│   │   └── regions.py            # Regional mappings
+│   ├── db/                       # Database layer
+│   │   ├── __init__.py
+│   │   ├── data_saving.py        # Data persistence with conflict resolution
+│   │   ├── db_connection.py      # Database queries and connections
+│   │   └── models.py             # SQLAlchemy ORM models
+│   ├── key/                      # API key management
+│   │   ├── api_key.env           # Environment variables (gitignored)
+│   │   └── key_handler.py        # Key loading and validation
+│   ├── pipeline/                 # Pipeline orchestration
+│   │   ├── __init__.py
+│   │   └── orchestrator_pipeline.py # Main pipeline controller
+│   ├── rate_limiting/            # Rate limiting implementation
+│   │   ├── __init__.py
+│   │   └── rate_manager.py       # Token bucket algorithm
+│   ├── riot_api/                 # Direct API interactions
+│   │   ├── __init__.py
+│   │   ├── match_data.py         # Match statistics API calls
+│   │   ├── match_ids.py          # Match ID retrieval
+│   │   ├── match_timeline.py     # Timeline events API
+│   │   └── summoner.py           # Summoner/player data API
+│   ├── services/                 # Business logic orchestration
+│   │   ├── __init__.py
+│   │   ├── match_data_service.py    # Match data collection service
+│   │   ├── match_id_service.py      # Match ID collection service
+│   │   ├── match_timeline_service.py # Timeline collection service
+│   │   └── summoner_service.py      # Summoner collection service
+│   └── utils/                    # Utility functions and helpers
+│       ├── __init__.py
+│       ├── decorators.py         # Error handling decorators
+│       ├── exceptions.py         # Custom exception classes
+│       ├── http_utils.py         # HTTP utilities and retry logic
+│       └── time_converter.py     # Unix timestamp conversions
+├── data/                         # Data storage directory
+│   └── league_data.db           # SQLite database (created at runtime)
+├── logs/                         # Application logs
+│   └── pipeline.log             # Main pipeline log file
+├── docs/                         # Documentation
+│   ├── README.md                # Detailed documentation
+│   ├── api_reference.md         # API documentation
+│   ├── configuration.md         # Configuration guide
+│   └── examples/                # Usage examples
+├── scripts/                      # Utility scripts
+│   ├── run_pipeline.py          # Main execution script
+│   ├── setup_database.py        # Database initialization
+│   └── validate_setup.py        # Environment validation
+├── photos/                       # Screenshots and diagrams
+│   ├── architecture_diagram.png
+│   ├── pipeline_flow.png
+│   └── database_schema.png
+├── tests/                        # Test suite
+│   ├── __init__.py
+│   ├── test_api_calls.py
+│   ├── test_rate_limiting.py
+│   └── test_services.py
+├── requirements.txt              # Python dependencies
+├── requirements-dev.txt          # Development dependencies
+├── setup.py                      # Package installation script
+├── .gitignore                   # Git ignore rules
+├── .env.example                 # Environment variables template
+├── LICENSE                      # MIT License
+└── README.md                    # Main project documentation
 ```
 
-### Component Overview
+### Service vs API Class Architecture
 
-#### Services Layer (Collects Data for All Regions)
-- **SummonerCollectionService**: Collects player ranking data
-- **MatchIDCollectionService**: Gathers match identifiers
-- **MatchDataService**: Retrieves detailed match statistics
-- **MatchTimelineService**: Collects positional and event timeline data
+The project distinguishes between two types of classes for clean separation of concerns:
 
-#### API Layer (Api Call Classes with Data Transformation Functions)
-- **SummonerEntries**: Player ranking and tier information
-- **MatchIDsCall**: Match ID collection with filtering
-- **MatchData**: Comprehensive match statistics
-- **MatchTimelineCall**: Timeline events and positioning
+**API Classes** (`riot_api/` folder):
+- **Purpose**: Direct interaction with Riot Games API endpoints
+- **Functionality**: Handle single API calls and data transformation
+- **Examples**: `SummonerEntries`, `MatchData`, `MatchIDsCall`, `MatchTimelineCall`
+- **Responsibilities**:
+  - Format API requests and handle responses
+  - Transform raw API data into database-ready format
+  - Handle endpoint-specific error scenarios
 
-#### Database Layer
-- **Models**: SQLAlchemy ORM models for all data types
-- **DataSaver**: Batch insertion with conflict resolution
-- **DatabaseQuery**: Complex queries for data relationships
+**Service Classes** (`services/` folder):
+- **Purpose**: Orchestrate multiple API calls across regions and coordinate business logic
+- **Functionality**: High-level workflow management and data collection coordination
+- **Examples**: `SummonerCollectionService`, `MatchDataService`, `MatchIDCollectionService`
+- **Responsibilities**:
+  - Manage regional processing and async task distribution
+  - Coordinate data saving operations with database layer
+  - Handle service-level error recovery and retry logic
+  - Orchestrate multiple API classes to complete complex workflows
 
-## Installation & Setup
+This architectural separation provides:
+- **Maintainability**: Clear boundaries between API interaction and business logic
+- **Testability**: API classes can be mocked for service testing
+- **Scalability**: Services can easily coordinate multiple API calls across regions
+- **Reusability**: API classes can be used independently or combined in different service workflows
+
+## 🚀 Features
+
+### Data Collection Capabilities
+
+- **Summoner Data**: Player profiles, rankings, tiers, divisions across all regions
+- **Match Statistics**: Comprehensive KDA, gold economics, damage metrics, vision control
+- **Timeline Events**: Timestamped kills, objectives, positioning data with coordinate tracking
+- **Team Performance**: Win/loss records, objective control, team composition analysis
+
+### Technical Features
+
+- **Intelligent Rate Limiting**: Dual token bucket system (per-second and per-time-window limits)
+- **Async Processing**: Concurrent API calls with configurable semaphores for optimal performance
+- **Error Recovery**: Exponential backoff retries with jitter for transient failures
+- **Data Integrity**: SQLite database with proper normalization and foreign key constraints
+- **Flexible Time Windows**: Configurable data collection periods with Unix timestamp handling
+
+## 📊 Data Collection Pipeline
+
+The pipeline operates in four sequential stages, each designed to build upon the previous stage's data:
+
+### Stage 1: Summoner Collection
+
+**Purpose**: Gather ranked players from competitive ladders across all regions and tiers.
+
+**Process**:
+1. Queries Riot API's ranked endpoints for each tier (Iron through Challenger)
+2. Collects player PUUIDs, current ranks, and regional information
+3. Maps local regions to continental regions for efficient API routing
+4. Stores summoner profiles with date stamps for tracking
+
+**Data Collected**:
+- Player PUUID (unique identifier)
+- Current competitive tier and division
+- Regional assignments (local and continental)
+- Collection timestamps
+
+### Stage 2: Match ID Collection
+
+**Purpose**: Retrieve recent match histories for collected summoners with tier validation.
+
+**Process**:
+1. Processes summoners by continental region for API efficiency
+2. Queries match history with configurable time limits (default: recent matches within day limit)
+3. Validates player's current tier at time of API call
+4. Associates match IDs with player tier information
+
+**Game Tier Determination**:
+The system determines a player's competitive tier by making a live API call to check their current ranking at the time of match ID collection. This ensures accurate tier classification even if a player's rank has changed since the initial summoner collection. The system uses a configurable day limit (set in `constants/pipeline_constants.py`) to only collect recent matches, ensuring data relevance.
+
+**Data Collected**:
+- Match IDs with associated player PUUIDs
+- Game tier classification based on current player rank
+- Temporal filtering based on configured day limits
+
+### Stage 3: Match Data Collection
+
+**Purpose**: Collect comprehensive match statistics and participant information.
+
+**Process**:
+1. Retrieves detailed match data for each collected match ID
+2. Processes team-level objectives and statistics
+3. Extracts individual participant performance metrics
+4. Calculates derived statistics (KDA ratios, gold per minute, damage per minute)
+
+**Data Collected**:
+- Team objectives (Baron, Dragon, Tower kills)
+- Individual participant statistics (KDA, gold, damage, vision)
+- Champion information and role assignments
+- Ping usage statistics and communication data
+
+### Stage 4: Timeline Collection
+
+**Purpose**: Gather timestamped events and positional data throughout matches.
+
+**Process**:
+1. Retrieves timeline data for matches with collected participant data
+2. Processes event streams (kills, objectives, building destructions)
+3. Extracts participant positioning data at regular intervals
+4. Associates events with specific players and teams using cross-referencing
+
+**Data Collected**:
+- Timestamped kill events with coordinates
+- Objective captures (Baron, Dragon, Herald)
+- Player positioning data throughout matches
+- Building destruction events
+
+## 🔧 Technical Implementation
+
+### Decorator-Based Code Reduction
+
+The project extensively uses decorators to reduce code duplication and improve maintainability:
+
+**`@async_api_call_error_wrapper`** (`utils/decorators.py`):
+This decorator handles all API call error scenarios, significantly reducing boilerplate code across API classes:
+
+- **Automatic Retry Logic**: Handles server errors (5xx) with exponential backoff
+- **Rate Limit Management**: Processes 429 errors with appropriate wait times
+- **Error Classification**: Distinguishes between retryable and non-retryable errors
+- **Logging Integration**: Provides consistent error logging across all API calls
+
+Without this decorator, each API method would need 20-30 lines of error handling code. With it, methods focus purely on their business logic.
+
+### Unix Time Converter Utility
+
+**`unix_time_converter`** (`utils/time_converter.py`):
+Provides flexible time unit conversions for API timestamp handling:
+
+```python
+# Convert days to seconds for API time filtering
+day_limit_seconds = unix_time_converter(7, "d", "s")  # 7 days to seconds
+# Convert API milliseconds to readable seconds
+readable_time = unix_time_converter(1640995200000, "mili", "s")
+```
+
+Supports conversions between: milliseconds, seconds, minutes, hours, and days.
+
+### HTTP Utilities and Retry Logic
+
+**`http_utils.py`** provides sophisticated HTTP request handling:
+
+**`safely_fetch_rate_limited_data`**:
+- Integrates with token bucket rate limiter
+- Ensures requests comply with API limits before execution
+- Handles response validation and JSON parsing
+
+**`exponential_back_off`**:
+- Implements exponential backoff with configurable base values
+- Includes jitter to prevent thundering herd problems
+- Caps maximum wait times to prevent excessive delays
+
+**`retry_api_call`**:
+- Determines retry eligibility based on error type and attempt count
+- Provides detailed logging for retry decisions
+
+### Token Bucket Rate Limiting
+
+**Dual Bucket System** (`rate_limiting/rate_manager.py`):
+
+The implementation uses separate "fast" and "slow" token buckets for each region:
+
+- **Fast Bucket**: Per-second rate limits (e.g., 20 requests/second)
+- **Slow Bucket**: Per-time-window limits (e.g., 100 requests/120 seconds)
+
+**Key Features**:
+- Independent rate limiting per region
+- Automatic token refill based on elapsed time
+- Request blocking until tokens are available
+- Sleep time calculation for optimal waiting
+
+## 🗄️ Database Schema
+
+The database uses SQLAlchemy ORM with SQLite, designed for optimal data relationships and query performance:
+
+### Core Tables
+
+**Summoners Table**:
+- Primary Key: `puuid` (Player UUID)
+- Regional information (local and continental)
+- Current competitive tier and division
+- Collection timestamps
+
+**MatchIDs Table**:
+- Primary Key: `match_id`
+- Foreign Key: `puuid` → Summoners
+- Game tier classification
+- Bridge table connecting players to matches
+
+**MatchDataTeams Table**:
+- Composite Key: `(match_id, team_id)`
+- Team-level objectives and performance
+- Win/loss results and game ending conditions
+
+**MatchDataParticipants Table**:
+- Composite Key: `(puuid, match_id)`
+- Comprehensive individual player statistics
+- KDA, economy, vision, and communication metrics
+
+**MatchTimeline Table**:
+- Composite Key: `(match_id, puuid, timestamp)`
+- Timestamped events and positioning data
+- Event classification and coordinate tracking
+
+### Database Features
+
+- **Foreign Key Constraints**: Ensures data integrity and referential consistency
+- **Composite Primary Keys**: Optimal for time-series and multi-dimensional data
+- **Conflict Resolution**: INSERT OR IGNORE for batch operations, IntegrityError handling for singles
+- **Scalable Design**: Normalized structure supports millions of records efficiently
+
+## ⚡ Rate Limiting & Error Handling
+
+### Rate Limiting Strategy
+
+**Token Bucket Algorithm**:
+The system implements a sophisticated dual token bucket rate limiter that respects both per-second and per-time-window API limits:
+
+```python
+# Example rate limits (configurable in constants/rates.py)
+MAX_CALLS_PER_SECOND = 20     # Fast bucket
+MAX_CALLS = 100               # Slow bucket capacity
+WINDOW = 120                  # Slow bucket window (seconds)
+```
+
+**Regional Independence**:
+Each region maintains separate token buckets, allowing parallel processing across regions while respecting per-region limits.
+
+### Error Handling Strategy
+
+**Exponential Backoff with Jitter**:
+- Base value: Configurable starting delay
+- Maximum wait time: Capped to prevent excessive delays
+- Jitter: Random factor prevents thundering herd problems
+
+**Error Classification**:
+- **Retryable Errors**: Server errors (5xx), timeouts, incomplete reads
+- **Non-Retryable Errors**: Client errors (4xx), authentication failures
+- **Rate Limit Errors**: Special handling with fixed wait times
+
+## ⚙️ Configuration
+
+The system uses a comprehensive constants-based configuration system:
+
+### Database Constants (`constants/database_constants.py`)
+- Database name and SQLAlchemy URL patterns
+- Table naming conventions
+- Connection parameters
+
+### API Endpoints (`constants/endpoints.py`)
+- Base URLs for different API regions
+- Endpoint patterns for all API calls
+- Parameter formatting templates
+
+### File Paths (`constants/file_folder_paths.py`)
+- Flexible path management using `pathlib`
+- Relative path construction with `__file__.parent.parent`
+- Configurable data and key storage locations
+
+### League Ranks (`constants/league_ranks.py`)
+- Competitive tiers (Iron through Challenger)
+- Divisions (I, II, III, IV)
+- Queue types and match classifications
+
+### Pipeline Configuration (`constants/pipeline_constants.py`)
+- **Stages to Process**: Binary flags for each pipeline stage
+- **Data Processing Config**:
+  - `PAGE_LIMIT`: Number of result pages for summoner entries
+  - `START` and `COUNT`: Pagination parameters for match ID API calls
+  - `DAY_LIMIT`: Time window for match collection (e.g., last 7 days)
+
+### Rate Limiting (`constants/rates.py`)
+- Token bucket parameters (capacity, refill rates)
+- Retry limits and backoff parameters
+- Sleep times for rate limit exceeded scenarios
+
+### Regional Configuration (`constants/regions.py`)
+- Local regions (NA1, EUW1, KR, etc.)
+- Continental regions (AMERICAS, EUROPE, ASIA)
+- Region mapping between local and continental
+
+## 🛠️ Installation & Setup
 
 ### Prerequisites
 
 - Python 3.8 or higher
-- Riot Games API key (free registration at [developer.riotgames.com](https://developer.riotgames.com))
-- 1-2GB available disk space for database storage
+- Riot Games Developer API Key ([Get one free](https://developer.riotgames.com))
+- ~2GB free disk space for database storage
 
-### Step-by-Step Installation
+### Installation Steps
 
-1. **Clone the Repository**
+1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/league-of-legends-data-pipeline.git
-   cd league-of-legends-data-pipeline
+   git clone https://github.com/yourusername/League-of-Legends-Data-Pipeline.git
+   cd League-of-Legends-Data-Pipeline
    ```
 
-2. **Create Virtual Environment**
+2. **Create Virtual Environment** (Recommended):
    ```bash
    python -m venv league_pipeline_env
-   source league_pipeline_env/bin/activate  # Linux/Mac
-   # or
-   league_pipeline_env\Scripts\activate     # Windows
+   source league_pipeline_env/bin/activate  # On Windows: league_pipeline_env\Scripts\activate
    ```
 
-3. **Install Dependencies**
+3. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **TBD**
+4. **Setup Environment**:
+   ```bash
+   # Copy environment template
+   cp .env.example league_pipeline/key/api_key.env
+   
+   # Edit with your API key
+   echo "RIOT_API_KEY=RGAPI-your-api-key-here" > league_pipeline/key/api_key.env
+   ```
 
-## Configuration
+5. **Initialize Database**:
+   ```bash
+   python scripts/setup_database.py
+   ```
 
-### Pipeline Configuration
+6. **Validate Setup**:
+   ```bash
+   python scripts/validate_setup.py
+   ```
 
-The pipeline behavior is controlled through several configuration files:
+### Quick Start Scripts
 
-#### `league_pipeline/constants/pipeline_constants.py`
+The project includes convenient scripts for common operations:
+
+- **`scripts/run_pipeline.py`**: Execute the complete data collection pipeline
+- **`scripts/setup_database.py`**: Initialize database tables and structure
+- **`scripts/validate_setup.py`**: Verify API key and system requirements
+
+## 🚀 Usage Examples
+
+### Quick Start - Complete Pipeline
+
+```bash
+# Using the provided script
+python scripts/run_pipeline.py
+
+# Or programmatically
+python -c "
+from league_pipeline.pipeline.orchestrator_pipeline import PipelineOrchestrator
+orchestrator = PipelineOrchestrator()
+orchestrator.run_full_pipeline()
+"
+```
+
+### Advanced Usage
+
+#### Selective Stage Execution
 
 ```python
-class DataProcessingConfig:
-    PAGE_LIMIT = 2              # Pages per API call
-    DAY_LIMIT = 10              # Days of match history
-    MATCHES_PER_TIER = 50       # Matches to collect per tier
-    PLAYERS_PER_TIER = 100      # Players to collect per tier
-    START = 0                   # Starting index for pagination
-    COUNT = 100                 # Items per API call
+from league_pipeline.pipeline.orchestrator_pipeline import PipelineOrchestrator
+from league_pipeline.constants.pipeline_constants import Stages
+
+# Configure specific stages in constants/pipeline_constants.py
+# TO_PROCESS = [True, True, False, False]  # Only summoner and match ID collection
+
+orchestrator = PipelineOrchestrator()
+orchestrator.activate_data_collection_services()
+orchestrator.start_pipeline()
 ```
 
-#### Rate Limiting Configuration
+#### Custom Configuration Example
 
 ```python
-class Rates(Enum):
-    MAX_CALLS = 100                    # Calls per 2-minute window
-    WINDOW = 120                       # Window in seconds
-    MAX_CALLS_PER_SECOND = 20          # Calls per second
-    MAX_API_CALL_RETRIES = 30          # Maximum retry attempts
-    MAX_WAITING_TIME_BETWEEN_RETRIES = 120  # Max backoff time
-```
-
-### Logging Configuration
-
-Logging is configured via `league_pipeline/config/log_config.json`:
-
-```json
-{
-  "version": 1,
-  "disable_existing_loggers": false,
-  "formatters": {
-    "detailed": {
-      "format": "[%(levelname)s|%(module)s|%(lineno)d|%(asctime)s: %(message)s]",
-      "datefmt": "%Y-%m-%dT%H:%M:%S%z"
-    }
-  },
-  "handlers": {
-    "file": {
-      "class": "logging.handlers.RotatingFileHandler",
-      "level": "DEBUG",
-      "filename": "logs/pipeline.log",
-      "maxBytes": 10000000,
-      "backupCount": 2
-    }
-  }
-}
-```
-
-## Database Schema
-
-### Core Tables
-
-#### Summoners Table
-Stores player information and rankings:
-```sql
-CREATE TABLE "Summoners" (
-    puuId TEXT PRIMARY KEY,
-    continentalRegion TEXT,
-    localRegion TEXT,
-    currentTier TEXT,
-    currentDivision TEXT,
-    dateCollected TEXT
-);
-```
-
-#### Match IDs Table
-Contains match identifiers and metadata:
-```sql
-CREATE TABLE "Match IDs" (
-    matchId TEXT PRIMARY KEY,
-    puuId TEXT,
-    gameTier TEXT,
-    FOREIGN KEY(puuId) REFERENCES Summoners(puuId)
-);
-```
-
-#### Match Data (Participants) Table
-Detailed player performance statistics:
-```sql
-CREATE TABLE "Match Data (Participants)" (
-    puuId TEXT,
-    matchId TEXT,
-    teamId INTEGER,
-    championKills INTEGER,
-    assists INTEGER,
-    deaths INTEGER,
-    KDA REAL,
-    goldEarned INTEGER,
-    goldPerMinute REAL,
-    -- ... additional 25+ performance metrics
-    PRIMARY KEY (puuId, matchId)
-);
-```
-
-#### Match Timeline Table
-Positional and event data over time:
-```sql
-CREATE TABLE "Match Timeline" (
-    matchId TEXT,
-    puuId TEXT,
-    timestamp INTEGER,
-    teamId TEXT,
-    x INTEGER,
-    y INTEGER,
-    event TEXT,
-    type TEXT,
-    PRIMARY KEY (matchId, puuId, timestamp)
-);
-```
-
-### Relationships
-
-- **Summoners** ↔ **Match IDs**: One-to-many (players can have multiple matches)
-- **Match IDs** ↔ **Match Data**: One-to-many (matches have multiple participants)
-- **Match Data** ↔ **Match Timeline**: One-to-many (participants have multiple timeline events)
-
-## Pipeline Stages
-
-The pipeline processes data in four sequential stages:
-
-### Stage 1: Summoner Collection
-- **Purpose**: Gather player information from ranked leaderboards
-- **Data Source**: League-v4 API endpoints
-- **Output**: Player PUUIDs, ranks, regions, tiers
-- **Regions**: All 14 game regions (NA1, EUW1, KR, etc.)
-
-### Stage 2: Match ID Collection
-- **Purpose**: Collect match identifiers for each player
-- **Data Source**: Match-v5 by-puuid endpoints
-- **Filtering**: Recent matches (configurable day limit)
-- **Output**: Match IDs linked to players and tiers
-
-### Stage 3: Match Data Collection
-- **Purpose**: Retrieve detailed match statistics
-- **Data Source**: Match-v5 by-matchId endpoints
-- **Metrics**: 30+ performance indicators per player
-- **Output**: Comprehensive match and player statistics
-
-### Stage 4: Timeline Collection
-- **Purpose**: Gather positional and event timeline data
-- **Data Source**: Match-v5 timeline endpoints
-- **Events**: Kills, objectives, positioning over time
-- **Output**: Time-series data for advanced analysis
-
-## API Integration
-
-### Riot Games API Coverage
-
-The pipeline integrates with multiple Riot API endpoints:
-
-#### Account-v1
-- `/riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}`
-- `/riot/account/v1/accounts/by-puuid/{puuId}`
-
-#### League-v4
-- `/lol/league/v4/challengerleagues/by-queue/{queue}`
-- `/lol/league/v4/grandmasterleagues/by-queue/{queue}`
-- `/lol/league/v4/masterleagues/by-queue/{queue}`
-- `/lol/league-exp/v4/entries/{queue}/{tier}/{division}`
-
-#### Match-v5
-- `/lol/match/v5/matches/by-puuid/{puuId}/ids`
-- `/lol/match/v5/matches/{matchId}`
-- `/lol/match/v5/matches/{matchId}/timeline`
-
-### Regional Routing
-
-The pipeline automatically handles regional routing:
-
-- **Platform Regions**: BR1, EUN1, EUW1, JP1, KR, LA1, LA2, ME1, NA1, OC1, SG2, TR1, TW2, VN2
-- **Continental Routing**: AMERICAS, ASIA, EUROPE
-- **Auto-mapping**: Platform regions automatically route to correct continental endpoints
-
-## Rate Limiting
-
-### Token Bucket Algorithm
-
-The pipeline implements a sophisticated dual-token bucket system:
-
-#### Bucket Configuration
-- **Slow Bucket**: 100 calls per 120 seconds
-- **Fast Bucket**: 20 calls per 1 second
-- **Regional Isolation**: Separate buckets per region
-
-#### Implementation Details
-
-```python
-class TokenBucket:
-    def __init__(self, regions: Type[Enum], logger: Logger):
-        # Initialize separate buckets for each region
-        for region in regions:
-            self.token_bucket_regions[region] = {
-                "slow_bucket_capacity": 100,
-                "slow_bucket_rate": 100/120,
-                "fast_bucket_capacity": 20,
-                "fast_bucket_rate": 20.0
-            }
-    
-    def allow_request(self, region: str) -> bool:
-        # Check both buckets before allowing request
-        return (self.slow_tokens > 0 and self.fast_tokens > 0)
-```
-
-### Adaptive Backoff
-
-When rate limits are exceeded:
-1. **Exponential Backoff**: `sleep_time = base^attempt`
-2. **Jitter Addition**: Randomization prevents thundering herd
-3. **Maximum Backoff**: Capped at 120 seconds
-4. **Smart Retry**: Different strategies for different error types
-
-## Usage Examples
-
-### Basic Pipeline Execution
-
-```python
-from league_pipeline.pipeline.main_pipeline import RiotPipeline
-
-# Initialize pipeline
-pipeline = RiotPipeline(
-    db_save_location="./data",
-    api_key="RGAPI-your-key-here",
-    stages_to_process=[1, 1, 1, 1],  # All stages
-    players_per_tier=100,
-    matches_per_tier=50
-)
-
-# Start data collection
-pipeline.start_pipeline()
-```
-
-### Custom Configuration
-
-```python
-# Custom rate limiting
-custom_rates = {
-    'max_calls': 50,
-    'window': 60,
-    'max_calls_per_second': 10
-}
-
-# Region-specific collection
-regions = ['NA1', 'EUW1', 'KR']
-
-# Tier filtering
-tiers = ['CHALLENGER', 'GRANDMASTER', 'MASTER']
-
-pipeline = RiotPipeline(
-    regions=regions,
-    tiers=tiers,
-    rate_limits=custom_rates
-)
-```
-
-### Service-Level Usage
-
-```python
-import asyncio
+# Custom service with specific parameters
 from league_pipeline.services.summoner_service import SummonerCollectionService
+from league_pipeline.constants.regions import Region
+from league_pipeline.constants.league_ranks import RankedTier, RankedDivision
+from league_pipeline.constants.file_folder_paths import Paths
 
-# Initialize service
 service = SummonerCollectionService(
-    db_location="./data",
-    database_name="league_data",
+    db_location=Paths.DATA,
+    database_name="custom_league_data",
     regions=Region,
     queue="RANKED_SOLO_5x5",
-    api_key="your-key"
+    api_key="your_api_key",
+    tiers=RankedTier,
+    pages=5,  # Collect more/fewer pages
+    divisions=RankedDivision,
+    logger=your_logger,
+    token_bucket=your_token_bucket
 )
 
-# Collect summoner data
+# Run custom service
+import asyncio
 asyncio.run(service.async_get_and_save_summoner_entries())
 ```
 
-## Monitoring & Logging
-
-### Log Levels and Categories
-
-#### DEBUG Level
-- Token bucket state changes
-- Individual API call details
-- Database transaction details
-
-#### INFO Level
-- Pipeline stage transitions
-- Successful API responses
-- Data collection summaries
-
-#### WARNING Level
-- Rate limit approaches
-- Retry attempts
-- Data quality issues
-
-#### ERROR Level
-- API failures
-- Database errors
-- Pipeline failures
-
-### Log File Organization
-
-```
-logs/
-├── pipeline.log           # Main application log
-├── pipeline.log.1         # Rotated log (previous)
-├── pipeline.log.2         # Rotated log (older)
-└── error_summary.log      # Error-only aggregation
-```
-
-### Performance Metrics
-
-The pipeline automatically tracks:
-- **API Call Success Rate**: Percentage of successful calls
-- **Average Response Time**: Per endpoint timing
-- **Rate Limit Utilization**: Token bucket efficiency
-- **Data Collection Rate**: Records per minute
-- **Error Frequency**: By error type and endpoint
-
-## Performance Optimization
-
-### Concurrent Processing
-
-#### Async Implementation
-```python
-async def process_multiple_regions(regions):
-    async with ClientSession() as session:
-        tasks = [
-            process_region(region, session) 
-            for region in regions
-        ]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-    return results
-```
-
-#### Connection Pooling
-- **aiohttp Session Reuse**: Single session per pipeline run
-- **Connection Limits**: Configurable concurrent connections
-- **DNS Caching**: Reduced lookup overhead
-
-### Database Optimization
-
-#### Batch Insertion
-```python
-def save_data(self, data: list):
-    # Use SQLAlchemy bulk operations
-    stmt = insert(self.table).values(data)
-    stmt = stmt.on_conflict_do_nothing()
-    session.execute(stmt)
-```
-
-#### Indexing Strategy
-- **Primary Keys**: Composite keys on frequently joined columns
-- **Foreign Keys**: Automatic indexing for relationships
-- **Query Optimization**: Index on filtering columns
-
-### Memory Management
-
-- **Streaming Processing**: Process data in chunks
-- **Generator Usage**: Avoid loading full datasets
-- **Connection Cleanup**: Proper session management
-
-## Troubleshooting
-
-### Common Issues and Solutions
-
-#### 1. API Key Issues
-
-**Problem**: 401 Unauthorized responses
-```
-ERROR: HTTP 401: Missing authentication credentials
-```
-
-**Solution**:
-```bash
-# Verify API key format
-echo $RIOT_API_KEY | grep "RGAPI-"
-
-# Check key expiration at developer.riotgames.com
-# Regenerate if necessary
-```
-
-#### 2. Rate Limiting Issues
-
-**Problem**: Frequent 429 errors despite rate limiting
-```
-WARNING: HTTP 429: Rate limit exceeded
-```
-
-**Solutions**:
-- Reduce concurrent requests
-- Increase backoff time
-- Check for multiple pipeline instances
-
-#### 3. Database Connection Issues
-
-**Problem**: SQLite database locked
-```
-ERROR: database is locked
-```
-
-**Solutions**:
-```python
-# Increase timeout
-engine = create_engine('sqlite:///db.db', pool_timeout=30)
-
-# Use WAL mode for better concurrency
-connection.execute('PRAGMA journal_mode=WAL')
-```
-
-#### 4. Memory Issues
-
-**Problem**: High memory usage during processing
-```
-MemoryError: Unable to allocate array
-```
-
-**Solutions**:
-- Reduce batch size
-- Enable streaming mode
-- Increase system swap space
-
-### Debug Mode
-
-Enable detailed debugging:
+### Database Queries and Analysis
 
 ```python
-import logging
-logging.getLogger('league_pipeline').setLevel(logging.DEBUG)
+from league_pipeline.db.db_connection import DatabaseQuery
+from league_pipeline.constants.file_folder_paths import Paths
+from league_pipeline.constants.database_constants import DatabaseName
 
-# Enable SQL query logging
-engine = create_engine('sqlite:///db.db', echo=True)
+# Initialize database connection
+db_query = DatabaseQuery(str(Paths.DATA), DatabaseName.DATABASE_NAME.value)
+
+# Get summoners by region
+americas_players = db_query.get_puuids_by_continent_from_summoner_table("AMERICAS")
+print(f"Found {len(americas_players)} players in Americas")
+
+# Get match IDs for analysis
+americas_matches = db_query.get_match_ids_by_continent_from_match_id_table("AMERICAS")
+print(f"Collected {len(americas_matches)} matches from Americas")
+
+# Get player position in specific match
+player_info = db_query.get_team_id_and_position("NA1_1234567890", "player_puuid")
 ```
 
-## Contributing
+### Configuration Examples
+
+#### Pipeline Stage Configuration
+```python
+# In constants/pipeline_constants.py
+
+class Stages:
+    # Set to True to enable, False to disable each stage
+    TO_PROCESS = [
+        True,  # Stage 1: Summoner Collection
+        True,  # Stage 2: Match ID Collection  
+        False,  # Stage 3: Match Data Collection (disabled)
+        False   # Stage 4: Timeline Collection (disabled)
+    ]
+
+class DataProcessingConfig:
+    PAGE_LIMIT = 10        # Pages per tier/region for summoner collection
+    START = 0              # Starting index for match ID pagination
+    COUNT = 100            # Number of matches per request
+    DAY_LIMIT = 7          # Only collect matches from last N days
+```
+
+#### Rate Limiting Configuration
+```python
+# In constants/rates.py
+
+class Rates:
+    MAX_CALLS_PER_SECOND = 20    # Fast bucket capacity
+    MAX_CALLS = 100              # Slow bucket capacity  
+    WINDOW = 120                 # Slow bucket time window (seconds)
+    MAX_API_CALL_RETRIES = 3     # Retry attempts for failed calls
+    EXPONENTIAL_BACK_OFF_BASE_VALUE = 2.0  # Base for exponential backoff
+```
+
+## 📈 Performance & Scalability
+
+### Performance Characteristics
+
+- **Concurrent Processing**: Async processing with configurable semaphores
+- **Memory Efficient**: Streaming data processing, minimal memory footprint
+- **Database Optimized**: Batch inserts with conflict resolution
+- **Rate Limit Compliant**: Intelligent token bucket prevents API violations
+
+### Scalability Considerations
+
+- **Regional Parallelization**: Independent processing per region
+- **Configurable Concurrency**: Adjustable semaphore limits based on system resources
+- **Database Scaling**: SQLite suitable for single-machine deployments up to millions of records
+- **API Efficiency**: Optimized endpoint usage minimizes API call requirements
+
+### Monitoring and Logging
+
+- **Comprehensive Logging**: Detailed logs for debugging and monitoring
+- **Rate Limit Tracking**: Token bucket status logging
+- **Error Classification**: Detailed error reporting and classification
+- **Performance Metrics**: Processing time and throughput logging
+
+## 🤝 Contributing
+
+We welcome contributions to improve the pipeline's capabilities and performance. Please follow these guidelines:
 
 ### Development Setup
 
-1. **Fork the Repository**
-2. **Create Feature Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Install development dependencies: `pip install -r requirements-dev.txt`
+4. Make your changes with appropriate tests
+5. Submit a pull request with detailed description
 
-3. **Install Development Dependencies**
-   ```bash
-   pip install -r requirements-dev.txt
-   ```
+### Code Style
 
-4. **Run Tests**
-   ```bash
-   pytest tests/
-   ```
+- Follow PEP 8 Python style guidelines
+- Use type hints for all function parameters and returns
+- Include comprehensive docstrings for all classes and methods
+- Maintain the existing architectural patterns
 
-5. **Code Quality Checks**
-   ```bash
-   flake8 league_pipeline/
-   black league_pipeline/
-   mypy league_pipeline/
-   ```
+### Testing
 
-### Contribution Guidelines
+- Add unit tests for new functionality
+- Test rate limiting behavior with mock API responses
+- Verify database operations with sample data
+- Include integration tests for complete workflows
 
-#### Code Style
-- Follow PEP 8
-- Use type hints
-- Add docstrings for all public methods
-- Maximum line length: 88 characters
+## 📄 License
 
-#### Testing Requirements
-- Unit tests for all new functions
-- Integration tests for API endpoints
-- Mock external dependencies
-- Maintain >90% code coverage
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for complete details.
 
-#### Documentation
-- Update README for new features
-- Add inline comments for complex logic
-- Include usage examples
 
-### Pull Request Process
+**🐛 Found a bug or have a feature request?** Please open an issue with detailed information.
 
-1. **Description**: Clear description of changes
-2. **Testing**: Include test results
-3. **Documentation**: Update relevant docs
-4. **Review**: Address all feedback
-5. **Squash**: Clean commit history
-
-## Advanced Topics
-
-### Custom Data Transformations
-
-#### Adding New Metrics
-
-```python
-# In match_data.py
-def transform_results(self, data):
-    # Add custom calculated metrics
-    participant_data['custom_efficiency'] = (
-        participant_data['gold_per_minute'] / 
-        participant_data['deaths'] if participant_data['deaths'] > 0 else 0
-    )
-    return participant_data
-```
-
-#### Custom Filtering
-
-```python
-# Filter matches by duration
-def filter_by_duration(self, match_data, min_duration=900):
-    duration = match_data['info']['gameDuration']
-    return duration >= min_duration
-```
-
-### Extending to New Game Modes
-
-#### Adding ARAM Support
-
-```python
-class ARAMDataCollector(MatchDataService):
-    def __init__(self):
-        super().__init__()
-        self.game_queue = 'ARAM'
-        self.map_id = 12  # Howling Abyss
-    
-    def process_aram_specific_metrics(self, data):
-        # ARAM-specific processing
-        pass
-```
-
-### Performance Monitoring
-
-#### Custom Metrics Collection
-
-```python
-import time
-from prometheus_client import Counter, Histogram
-
-api_calls = Counter('riot_api_calls_total', 'Total API calls')
-response_time = Histogram('riot_api_response_seconds', 'Response time')
-
-@response_time.time()
-async def monitored_api_call(self, url):
-    api_calls.inc()
-    return await self.make_request(url)
-```
-
-### Production Deployment
-
-#### Docker Configuration
-
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-CMD ["python", "scripts/run_pipeline.py"]
-```
-
-#### Environment Configuration
-
-```bash
-# Production environment variables
-export RIOT_API_KEY="your-production-key"
-export DATABASE_URL="postgresql://user:pass@host/db"
-export LOG_LEVEL="INFO"
-export RATE_LIMIT_BUFFER="0.8"  # Use 80% of rate limit
-```
-
----
-
-## License
-
-MIT License - See [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- **Riot Games** for providing comprehensive API access
-- **League of Legends Community** for inspiration and feedback
-- **Open Source Contributors** who helped improve this project
-
----
-
-*For additional support, please open an issue on GitHub or contact the maintainers.*
+**💡 Have questions?** Check the documentation or open a discussion thread.
