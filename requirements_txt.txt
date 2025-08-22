@@ -1,0 +1,15 @@
+# Core async HTTP client for API requests
+aiohttp>=3.8.0,<4.0.0
+
+# Database ORM and SQLite support
+SQLAlchemy>=2.0.0,<3.0.0
+
+# Environment variable management for API keys
+python-dotenv>=1.0.0
+
+# Path manipulation (usually built-in, but good to specify for older Python versions)
+pathlib2>=2.3.0; python_version < "3.4"
+
+# JSON handling 
+
+# Logging 
