@@ -18,10 +18,11 @@ class Paths:
         KEY (Path): Path to the API key environment file.
         LOGGING_CONFIG (Path): Path to the logging configuration JSON file.
     """
-    BASE = Path("D:/Programming Projects/League-of-Legends-data-pipeline")
+    BASE = Path(__file__).parent.parent.parent
     DATA = BASE / "data"
     DATABASE = DATA / ".".join([str(DatabaseName.DATABASE_NAME.value),"db"])
     LEAGUE_PIPELINE = BASE / "league_pipeline"
     CONFIG = LEAGUE_PIPELINE / "config"
     KEY = LEAGUE_PIPELINE / "key" / "api_key.env"
     LOGGING_CONFIG = CONFIG / "log_config.json"
+
