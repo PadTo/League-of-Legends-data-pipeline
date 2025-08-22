@@ -5,9 +5,9 @@ class Stages:
     
     Attributes:
         TO_PROCESS (list[int]): Binary flags indicating which stages to process.
-                               [1, 0, 0, 0, 0] means only stage 1 is active.
+                               [True, False, False, False] means only stage 1 is active.
     """
-    TO_PROCESS = [1, 0, 0, 0, 0]
+    TO_PROCESS = [True, False, False, False]
     
 class EventTypes:
     """
