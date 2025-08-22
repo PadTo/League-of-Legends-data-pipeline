@@ -40,7 +40,7 @@ League-of-Legends-Data-Pipeline/
 │   ├── __init__.py
 │   ├── config/                   # Configuration management
 │   │   ├── __init__.py
-│   │   ├── log_config.json       # Logging configuration
+│   │   ├── log_config.json        # Logging configuration
 │   │   └── logger_config_setup.py # Logger initialization
 │   ├── constants/                # Application constants and enums
 │   │   ├── __init__.py
@@ -51,67 +51,52 @@ League-of-Legends-Data-Pipeline/
 │   │   ├── pipeline_constants.py # Stage configuration, processing limits
 │   │   ├── rates.py              # Rate limiting parameters
 │   │   └── regions.py            # Regional mappings
-│   ├── db/                       # Database layer
+│   ├── db/                        # Database layer
 │   │   ├── __init__.py
-│   │   ├── data_saving.py        # Data persistence with conflict resolution
-│   │   ├── db_connection.py      # Database queries and connections
-│   │   └── models.py             # SQLAlchemy ORM models
+│   │   ├── data_saving.py         # Data persistence with conflict resolution
+│   │   ├── db_connection.py       # Database queries and connections
+│   │   └── models.py              # SQLAlchemy ORM models
 │   ├── key/                      # API key management
 │   │   ├── api_key.env           # Environment variables (gitignored)
 │   │   └── key_handler.py        # Key loading and validation
-│   ├── pipeline/                 # Pipeline orchestration
+│   ├── pipeline/                    # Pipeline orchestration
 │   │   ├── __init__.py
 │   │   └── orchestrator_pipeline.py # Main pipeline controller
 │   ├── rate_limiting/            # Rate limiting implementation
 │   │   ├── __init__.py
 │   │   └── rate_manager.py       # Token bucket algorithm
-│   ├── riot_api/                 # Direct API interactions
+│   ├── riot_api/               # Direct API interactions
 │   │   ├── __init__.py
-│   │   ├── match_data.py         # Match statistics API calls
-│   │   ├── match_ids.py          # Match ID retrieval
-│   │   ├── match_timeline.py     # Timeline events API
-│   │   └── summoner.py           # Summoner/player data API
-│   ├── services/                 # Business logic orchestration
+│   │   ├── match_data.py       # Match statistics API calls
+│   │   ├── match_ids.py        # Match ID retrieval
+│   │   ├── match_timeline.py   # Timeline events API
+│   │   └── summoner.py         # Summoner/player data API
+│   ├── services/                     # Business logic orchestration
 │   │   ├── __init__.py
-│   │   ├── match_data_service.py    # Match data collection service
-│   │   ├── match_id_service.py      # Match ID collection service
+│   │   ├── match_data_service.py     # Match data collection service
+│   │   ├── match_id_service.py       # Match ID collection service
 │   │   ├── match_timeline_service.py # Timeline collection service
-│   │   └── summoner_service.py      # Summoner collection service
+│   │   └── summoner_service.py       # Summoner collection service
 │   └── utils/                    # Utility functions and helpers
 │       ├── __init__.py
 │       ├── decorators.py         # Error handling decorators
 │       ├── exceptions.py         # Custom exception classes
 │       ├── http_utils.py         # HTTP utilities and retry logic
 │       └── time_converter.py     # Unix timestamp conversions
-├── data/                         # Data storage directory
-│   └── league_data.db           # SQLite database (created at runtime)
+├── data/                          # Data storage directory
+│   └── database.db                # SQLite database (created at runtime)
 ├── logs/                         # Application logs
-│   └── pipeline.log             # Main pipeline log file
-├── docs/                         # Documentation
-│   ├── README.md                # Detailed documentation
-│   ├── api_reference.md         # API documentation
-│   ├── configuration.md         # Configuration guide
-│   └── examples/                # Usage examples
+│   └── pipeline.log              # Main pipeline log file
+├── docs/                          # Documentation
+│   └── README.md                  # Detailed documentation
 ├── scripts/                      # Utility scripts
-│   ├── run_pipeline.py          # Main execution script
-│   ├── setup_database.py        # Database initialization
-│   └── validate_setup.py        # Environment validation
-├── photos/                       # Screenshots and diagrams
-│   ├── architecture_diagram.png
-│   ├── pipeline_flow.png
-│   └── database_schema.png
-├── tests/                        # Test suite
-│   ├── __init__.py
-│   ├── test_api_calls.py
-│   ├── test_rate_limiting.py
-│   └── test_services.py
+│   └── run_pipeline.py           # Main execution script
+├── photos/                        # Screenshots and diagrams
+│   └── api_call_workflow.png
 ├── requirements.txt              # Python dependencies
-├── requirements-dev.txt          # Development dependencies
 ├── setup.py                      # Package installation script
-├── .gitignore                   # Git ignore rules
-├── .env.example                 # Environment variables template
-├── LICENSE                      # MIT License
-└── README.md                    # Main project documentation
+├── .gitignore                    # Git ignore rules
+└── README.md                     # Main project documentation
 ```
 
 ### Service vs API Class Architecture
