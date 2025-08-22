@@ -1,12 +1,26 @@
 class StatusCodeError(Exception):
-    """Custom exception for handling HTTP status code errors."""
-
+    """
+    Custom exception for handling HTTP status code errors.
+    
+    This exception provides detailed error information for HTTP response
+    status codes, including the status code and descriptive message.
+    
+    Attributes:
+        status_code (int): HTTP status code that caused the error.
+        message (str): Descriptive error message.
+    """
     def __init__(self, status_code, message=""):
         super().__init__(f"HTTP {status_code}: {message}")
         self.status_code = status_code
         self.message = message
 
 class StatusResponseException:
+    """
+    Utility class for handling and explaining HTTP status codes.
+    
+    This class provides detailed explanations for various HTTP status codes
+    and methods for raising appropriate exceptions based on response codes.
+    """
     def __init__(self) -> None:
         self.response_code_dict = {
             200: (
@@ -86,21 +100,23 @@ class StatusResponseException:
                 "- The server did not receive a timely response from upstream.")
         }
     def get_response_codes(self) -> list:
-
+        """
+        Get list of all supported HTTP status codes.
+        
+        Returns:
+            list: List of integer status codes with explanations available.
+        """
         return list(self.response_code_dict.keys())
         
     def raise_error(self, status_code: int) -> None:
         """
-        Handles different HTTP status codes and raises exceptions if the status code is not 200.
-
+        Raise StatusCodeError for non-200 status codes.
+        
         Args:
-            status_code (int): The HTTP status code from the API response.
-
+            status_code: HTTP status code to handle
+            
         Raises:
-            StatusCodeError: If the status code is not 200, raises a custom exception with a message.
-
-        Returns:
-            bool: True if the status code is 200, otherwise raises an exception.
+            StatusCodeError: If status code is not 200, with detailed message.
         """
 
 
