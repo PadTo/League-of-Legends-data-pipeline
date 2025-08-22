@@ -61,13 +61,6 @@ class SummonerEntries:
                                                        self.status_response_exception,
                                                        logger=self.logger)
         
-        for summoner in content:
-            try:
-                summoner["region"] = region
-            except Exception as e:
-                print(f"I have caused the issue {summoner}")
-                print(f"I have caused the issue {content}")
-                raise
 
         
 
