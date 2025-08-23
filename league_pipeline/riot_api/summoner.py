@@ -65,7 +65,7 @@ class SummonerEntries:
         
 
         if transform_results:
-            transformed_results = self.transform_results(content)
+            transformed_results = self.transform_results(content, region=region)
             return transformed_results
 
         return content
@@ -104,7 +104,7 @@ class SummonerEntries:
              
         return "UNRANKED"
     
-    def transform_results(self, data: list) -> list:
+    def transform_results(self, data: list, region:str) -> list:
         """
         Transform summoner data into database-ready format.
         
@@ -119,7 +119,6 @@ class SummonerEntries:
         for result in data:
             transformed_results = dict()
             transformed_results["puuid"] = result["puuid"]
-            region = result["region"]
             transformed_results["continental_region"] = RegionMapping.__members__[region].value
             transformed_results["local_region"] = region
             transformed_results["current_tier"] = result["tier"]
