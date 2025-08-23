@@ -20,19 +20,17 @@ A production-ready, scalable data pipeline for collecting, processing, and analy
 
 ## 🎯 Overview
 
-This data pipeline provides a comprehensive solution for collecting and analyzing League of Legends esports data at scale. It handles the complexities of the Riot Games API, including rate limiting, regional differences, and data transformation, while providing a clean, maintainable codebase suitable for production use.
+This data pipeline provides a solution for collecting League of Legends esports data at scale. It handles the complexities of the Riot Games API, including rate limiting, regional differences, and data transformation, while providing a clean, maintainable codebase suitable for production use.
 
 ### Key Capabilities
 
-- **Multi-Regional Data Collection**: Supports all 12+ League of Legends regions with intelligent continental grouping
+- **Multi-Regional Data Collection**: Supports all 12+ League of Legends regions with region grouping based on both local and continental regions
 - **Comprehensive Match Analysis**: Collects detailed statistics, objectives, timeline events, and positioning data
-- **Production-Grade Reliability**: Built-in error handling, exponential backoff retries, and comprehensive logging
+- **Production-Grade Reliability**: Built-in error handling, exponential backoff retries, and logging
 - **Scalable Architecture**: Async processing with configurable concurrency limits and token bucket rate limiting
 - **Flexible Configuration**: Modular design allows selective data collection based on requirements
 
 ## 🏗️ Architecture
-
-The pipeline follows a modular, service-oriented architecture with clear separation of concerns:
 
 ```
 League-of-Legends-Data-Pipeline/
@@ -113,17 +111,15 @@ The project distinguishes between two types of classes for clean separation of c
   - Handle endpoint-specific error scenarios
 
 **Service Classes** (`services/` folder):
-- **Purpose**: Orchestrate multiple API calls across regions and coordinate business logic
+- **Purpose**: Orchestrate multiple API calls across regions
 - **Functionality**: High-level workflow management and data collection coordination
-- **Examples**: `SummonerCollectionService`, `MatchDataService`, `MatchIDCollectionService`
+- **Examples**: `SummonerCollectionService`, `MatchDataService`, `MatchIDCollectionService`, `MatchTimelineService`
 - **Responsibilities**:
   - Manage regional processing and async task distribution
   - Coordinate data saving operations with database layer
   - Handle service-level error recovery and retry logic
-  - Orchestrate multiple API classes to complete complex workflows
 
 This architectural separation provides:
-- **Maintainability**: Clear boundaries between API interaction and business logic
 - **Testability**: API classes can be mocked for service testing
 - **Scalability**: Services can easily coordinate multiple API calls across regions
 - **Reusability**: API classes can be used independently or combined in different service workflows
@@ -140,7 +136,7 @@ This architectural separation provides:
 ### Technical Features
 
 - **Intelligent Rate Limiting**: Dual token bucket system (per-second and per-time-window limits)
-- **Async Processing**: Concurrent API calls with configurable semaphores for optimal performance
+- **Async Processing**: Concurrent API calls for optimal performance
 - **Error Recovery**: Exponential backoff retries with jitter for transient failures
 - **Data Integrity**: SQLite database with proper normalization and foreign key constraints
 - **Flexible Time Windows**: Configurable data collection periods with Unix timestamp handling
@@ -150,6 +146,11 @@ This architectural separation provides:
 The pipeline operates in four sequential stages, each designed to build upon the previous stage's data:
 
 ### Stage 1: Summoner Collection
+
+Inline-style: 
+![]("https://github.com/PadTo/League-of-Legends-data-pipeline/blob/main/photos/API_Call_Workflow.png")
+
+
 
 **Purpose**: Gather ranked players from competitive ladders across all regions and tiers.
 
