@@ -155,7 +155,7 @@ The pipeline operates in four sequential stages, each designed to build upon the
 **Process**:
 1. Queries Riot API's ranked endpoints for each tier (Iron through Challenger)
 2. Collects player PUUIDs, current ranks, and regional information
-3. Maps local regions to continental regions for efficient API routing
+3. Maps local regions to continental regions for later token bucket limiting based on continental and local regions
 4. Stores summoner profiles with date stamps for tracking
 
 **Data Collected**:
@@ -184,7 +184,7 @@ The system determines a player's competitive tier by making a live API call to c
 
 ### Stage 3: Match Data Collection
 
-**Purpose**: Collect comprehensive match statistics and participant information.
+**Purpose**: Collect match statistics and participant information.
 
 **Process**:
 1. Retrieves detailed match data for each collected match ID
@@ -197,6 +197,9 @@ The system determines a player's competitive tier by making a live API call to c
 - Individual participant statistics (KDA, gold, damage, vision)
 - Champion information and role assignments
 - Ping usage statistics and communication data
+
+Note:
+Match data collection process gathers data into two separate tables for teams and participants 
 
 ### Stage 4: Timeline Collection
 
