@@ -1,5 +1,5 @@
 import asyncio
-from aiohttp.client_exceptions import ClientResponseError
+from aiohttp.client_exceptions import ClientResponseError, ClientConnectorDNSError, ClientConnectorError, ClientOSError
 from logging import Logger
 from league_pipeline.constants.rates import Rates
 from league_pipeline.utils.exceptions import StatusCodeError
@@ -63,14 +63,25 @@ def async_api_call_error_wrapper(function):
                     retry = retry_api_call(e, attempt, max_retries, logger)
                     if retry:
                         wait_time = exponential_back_off(Rates.EXPONENTIAL_BACK_OFF_BASE_VALUE.value,
-                                                            Rates.MAX_WAITING_TIME_BETWEEN_RETRIES.value,
-                                                            attempt = attempt, jitter=Rates.JITTER.value)
+                                                         Rates.MAX_WAITING_TIME_BETWEEN_RETRIES.value,
+                                                         attempt = attempt, jitter=Rates.JITTER.value)
                         await asyncio.sleep(wait_time)
                     else:
                         raise
                 else:
                     raise
+            
+            except (ClientConnectorDNSError, ClientConnectorError,ClientOSError) as e:
+                retry = retry_api_call(e, attempt,max_retries,logger)
+                
+                if retry:
+                    wait_time = exponential_back_off(Rates.EXPONENTIAL_BACK_OFF_BASE_VALUE.value,
+                                                     Rates.MAX_WAITING_TIME_BETWEEN_RETRIES.value,
+                                                     attempt = attempt, jitter=Rates.JITTER.value)
 
+                    await asyncio.sleep(wait_time)
+                else:
+                    raise
             except asyncio.TimeoutError as e:
                 
                 logger.warning("System Timeout occurred")
