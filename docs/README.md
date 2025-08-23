@@ -147,10 +147,7 @@ The pipeline operates in four sequential stages, each designed to build upon the
 
 ### Stage 1: Summoner Collection
 
-Inline-style: 
-![]("https://github.com/PadTo/League-of-Legends-data-pipeline/blob/main/photos/API_Call_Workflow.png")
-
-
+![API Call Workflow](https://raw.githubusercontent.com/PadTo/League-of-Legends-data-pipeline/main/photos/API_Call_Workflow.png)
 
 **Purpose**: Gather ranked players from competitive ladders across all regions and tiers.
 
