@@ -4,9 +4,9 @@ A production-ready, scalable data pipeline for collecting, processing, and analy
 
 ## 📋 Table of Contents
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Features](#features)
+- [Overview](##overview)
+- [Architecture](##architecture)
+- [Features](##features)
 - [Data Collection Pipeline](#data-collection-pipeline)
 - [Technical Implementation](#technical-implementation)
 - [Database Schema](#database-schema)
