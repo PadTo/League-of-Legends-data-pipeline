@@ -10,7 +10,6 @@ from league_pipeline.rate_limiting.rate_manager import TokenBucket
 from league_pipeline.db.data_saving import DataSaver
 from aiohttp import ClientSession
 import asyncio
-from league_pipeline.db.models import MatchIDs
 from league_pipeline.db.db_connection import DatabaseQuery
 
 from league_pipeline.utils.time_converter import unix_time_converter
