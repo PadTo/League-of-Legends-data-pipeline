@@ -1,40 +1,39 @@
 # League of Legends Data Pipeline
-A comprehensive, production-ready data pipeline for collecting and analyzing League of Legends match data using the Riot Games API with intelligent rate limiting and async processing.
+A comprehensive, production-ready data pipeline for collecting League of Legends data using the Riot Games API with rate limiting and async processing.
 
 For the full detailed documentation, go **[HERE](https://github.com/PadTo/League-of-Legends-data-pipeline/tree/main/docs)**
 
 
 ## 🚀 Features
 
-- **Multi-Region Data Collection**: Supports all League regions with continental grouping
+- **Multi-Region Data Collection**: Supports all League regions both continental (ASIA, EUROPE, ...) and local (EUN1, EUW1, ...)
 - **Intelligent Rate Limiting**: Token bucket algorithm respects Riot API limits
-- **Async Processing**: High-performance concurrent API calls with error handling
-- **Comprehensive Data Collection**: 
+- **Async Processing**: Concurrent API calls with error handling
+- **Data Collection**: 
   - Summoner rankings and profile data
   - Match IDs with time-based filtering
   - Detailed match statistics and participant data
   - Timeline events with positioning data
-- **Robust Database Design**: SQLite with proper normalization and foreign key relationships
-- **Production Features**: Exponential backoff retries, comprehensive logging, and error handling
+- **Robust Database Design**: SQLAlchemy ORM with proper normalization and foreign key relationships
+- **Production Features**: Exponential backoff retries, logging, and error handling
 
 ## 📊 Data Pipeline Stages
 
 1. **Summoner Collection**: Gather ranked players from all tiers and regions
-2. **Match ID Collection**: Retrieve recent match histories with tier validation
-3. **Match Data Collection**: Collect detailed statistics, objectives, and KDA data
+2. **Match ID Collection**: Retrieve recent match histories filtered by when the game was played from the current date
+3. **Match Data Collection**: Collect objectives, KDA data, and detailed statistics 
 4. **Timeline Collection**: Gather timestamped events and player positioning
 
 ## 🛠️ Tech Stack
 
 - **Python 3.8+** with asyncio for concurrent processing
 - **aiohttp** for async HTTP requests  
-- **SQLAlchemy** ORM with SQLite database
+- **SQLAlchemy** ORM
 - **Token Bucket Rate Limiting** for API compliance
 - **Riot Games API** integration
 
 ## 📈 Use Cases
 
-- **Esports Analytics**: Professional team and player performance analysis
 - **Game Balance Research**: Meta trends and champion win rate analysis
 - **Academic Research**: Large-scale gaming behavior and strategy studies
 - **Personal Analytics**: Rank progression and gameplay improvement tracking
@@ -68,6 +67,8 @@ python -c "from league_pipeline.pipeline.orchestrator_pipeline import PipelineOr
 The pipeline is highly configurable through constants:
 - **Regions**: Select which regions to process
 - **Tiers**: Configure rank tiers to collect (Iron to Challenger)
+- **Page Limits**: Determine how many summoners to get per tier
+- **Start and Count**: Start (offset into match history) and Count (number of matches to fetch from that offset)
 - **Time Limits**: Set data collection time windows
 - **Processing Stages**: Enable/disable pipeline components
 
