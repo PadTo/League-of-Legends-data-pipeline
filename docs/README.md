@@ -520,35 +520,6 @@ class Rates:
 
 ## 🤝 Contributing
 
-We welcome contributions to improve the pipeline's capabilities and performance. Please follow these guidelines:
-
-### Development Setup
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Install development dependencies: `pip install -r requirements-dev.txt`
-4. Make your changes with appropriate tests
-5. Submit a pull request with detailed description
-
-### Code Style
-
-- Follow PEP 8 Python style guidelines
-- Use type hints for all function parameters and returns
-- Include comprehensive docstrings for all classes and methods
-- Maintain the existing architectural patterns
-
-### Testing
-
-- Add unit tests for new functionality
-- Test rate limiting behavior with mock API responses
-- Verify database operations with sample data
-- Include integration tests for complete workflows
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for complete details.
-
-
-**🐛 Found a bug or have a feature request?** Please open an issue with detailed information.
+I welcome contributions to improve the pipeline's capabilities and performance.
 
 **💡 Have questions?** Check the documentation or open a discussion thread.
